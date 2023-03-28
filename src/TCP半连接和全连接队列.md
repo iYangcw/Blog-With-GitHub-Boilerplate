@@ -205,9 +205,9 @@ sudo sysctl -w net.ipv4.tcp_syncookies=1
 
 **没开启cookie的结果如下：**
 
-Linux 3.10.0 的测试结果，
+Linux 3.10.0 的测试结果如下，字段 a = max(min(backlog,somaxconn,sysctl_max_sys_backlog),8)，
 
-| backlog | somaxconn | tcp_max_syn_backlog | tcp_syncookies | tcp_max_syn_backlog * 0.75 | a=max(min(backlog,somaxconn,sysctl_max_sys_backlog),8) | roundup_pow_of_two(a+1) | 半队列最大长度 | 全队列最大长度 | 触发 Drop SYN 临界值 |
+| backlog | somaxconn | tcp_max_syn_backlog | tcp_syncookies | tcp_max_syn_backlog * 0.75 | a | roundup_pow_of_two(a+1) | 半队列最大长度 | 全队列最大长度 | 触发 Drop SYN 临界值 |
 | ------- | --------- | ------------------- | -------------- | -------------------------- | ------------------------------------------------------ | ----------------------- | -------------- | -------------- | -------------------- |
 | 1024    | 1024      | 128                 | 0              | 96                         | 128                                                    | 256                     | 256            | 1024           | 96+1=97              |
 | 128     | 128       | 118                 | 0              | 88.5                       | 118                                                    | 128                     | 128            | 128            | 88.5+1=90            |
