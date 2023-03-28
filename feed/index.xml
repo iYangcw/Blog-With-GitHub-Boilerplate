@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='UTF-8'?>
-<rss xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/" version="2.0"><channel><title>个人博客</title><link>/Blog-With-GitHub-Boilerplate/</link><description>只坚持一种正义。我的正义。</description><docs>http://www.rssboard.org/rss-specification</docs><generator>python-feedgen</generator><image><url>/Blog-With-GitHub-Boilerplate/logo.png</url><title>个人博客</title><link>/Blog-With-GitHub-Boilerplate/</link></image><language>zh-CN</language><lastBuildDate>Tue, 28 Mar 2023 14:18:17 +0806</lastBuildDate><pubDate>Tue, 28 Mar 2023 14:18:17 +0806</pubDate><item><title>Hello World!</title><link>/Blog-With-GitHub-Boilerplate/archives/typography/</link><description>&lt;div class="notice"&gt;这是一篇示例文章，在这里你可以看到常用页面元素的显示效果，同时也是 Markdown 语法的参考文章。保留或者删除本文，开始自己的创作吧！&lt;/div&gt;&lt;h2&gt;L2 Heading&lt;/h2&gt;
+<rss xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/" version="2.0"><channel><title>个人博客</title><link>/Blog-With-GitHub-Boilerplate/</link><description>只坚持一种正义。我的正义。</description><docs>http://www.rssboard.org/rss-specification</docs><generator>python-feedgen</generator><image><url>/Blog-With-GitHub-Boilerplate/logo.png</url><title>个人博客</title><link>/Blog-With-GitHub-Boilerplate/</link></image><language>zh-CN</language><lastBuildDate>Tue, 28 Mar 2023 14:22:50 +0806</lastBuildDate><pubDate>Tue, 28 Mar 2023 14:22:50 +0806</pubDate><item><title>Hello World!</title><link>/Blog-With-GitHub-Boilerplate/archives/typography/</link><description>&lt;div class="notice"&gt;这是一篇示例文章，在这里你可以看到常用页面元素的显示效果，同时也是 Markdown 语法的参考文章。保留或者删除本文，开始自己的创作吧！&lt;/div&gt;&lt;h2&gt;L2 Heading&lt;/h2&gt;
 &lt;h3&gt;L3 Heading&lt;/h3&gt;
 &lt;h4&gt;L4 Heading&lt;/h4&gt;
 &lt;h5&gt;L5 Heading&lt;/h5&gt;
@@ -158,9 +158,9 @@ CLOSE-WAIT&lt;span class="w"&gt;  &lt;/span&gt;&lt;span class="m"&gt;12&lt;/span
 &lt;p&gt;校验 Accept Queue 是否满的逻辑如下（ 注意大于号才返回ture，即最终可存储 &lt;strong&gt;socket 数目会加1&lt;/strong&gt;）：&lt;/p&gt;
 &lt;p&gt;&lt;code&gt;return sk-&amp;gt;sk_ack_backlog &amp;gt; sk-&amp;gt;sk_max_ack_backlog&lt;/code&gt;&lt;/p&gt;
 &lt;h2&gt;1.6、SYN Queue：半连接队列的结论&lt;/h2&gt;
-&lt;p&gt;半连接的逻辑比较复杂，算出最大连接后，还有其他逻辑进行判断。实际测试下来的情况，不开启 cookie 的结果和结论能对的上，但是开启 cookie 后，测试的结果对不上（以后再进行分析，目前一直无法测试到结果）&lt;/p&gt;
+&lt;p&gt;半连接的逻辑比较复杂，算出最大连接后，还有其他逻辑进行判断。实际测试下来的情况，不开启 cookie 的结果和结论能对的上，但是开启 cookie 后，测试的结果对不上【&lt;strong&gt;以后再进行分析，目前一直无法测试到结果&lt;/strong&gt;】&lt;/p&gt;
 &lt;p&gt;&lt;strong&gt;不开启cookie的结论如下&lt;/strong&gt;&lt;/p&gt;
-&lt;p&gt;1、半连接最大连接 &amp;gt; 0.75*tcp_max_syn_backlog，则 Drop SYN临界值为 0.75*tcp_max_syn_backlog +1【+1是因为判断条件是大于号】&lt;/p&gt;
+&lt;p&gt;1、半连接最大连接 &amp;gt; 0.75*tcp_max_syn_backlog，则 Drop SYN临界值为 0.75*tcp_max_syn_backlog +1【+1是因为判断条件是大于号，另外0.75乘法后的结果不确定是否是四舍五入还是向上取整，但是从实际结果来看小点数如果是 0.5 结果是按照 1 来计算】&lt;/p&gt;
 &lt;p&gt;2、半连接最大连接 &amp;lt;= 0.75*tcp_max_syn_backlog，则 Drop SYN临界值为 半连接最大连接&lt;/p&gt;
 &lt;p&gt;【tcp_v4_conn_request 函数的第三处判断，按照代码判断 等于号 应是上述 2 的结论，但是由于 测试中的 256除以0.75 不是整数，无法进一步确认等于号 =】&lt;/p&gt;
 &lt;p&gt;&lt;strong&gt;开启cookie的结论如下：&lt;/strong&gt;&lt;/p&gt;

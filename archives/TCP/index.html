@@ -19,7 +19,7 @@
     <script>
         var ExSearchConfig = {
             root: "",
-            api: "/Blog-With-GitHub-Boilerplate/37a311d2b8880ddcb01a2982a91d3761.json"
+            api: "/Blog-With-GitHub-Boilerplate/7abdf0ec8054baab87f85f664ce07921.json"
         }
     </script>
     
@@ -160,9 +160,9 @@ CLOSE-WAIT<span class="w">  </span><span class="m">12</span><span class="w">    
 <p>校验 Accept Queue 是否满的逻辑如下（ 注意大于号才返回ture，即最终可存储 <strong>socket 数目会加1</strong>）：</p>
 <p><code>return sk-&gt;sk_ack_backlog &gt; sk-&gt;sk_max_ack_backlog</code></p>
 <h2>1.6、SYN Queue：半连接队列的结论</h2>
-<p>半连接的逻辑比较复杂，算出最大连接后，还有其他逻辑进行判断。实际测试下来的情况，不开启 cookie 的结果和结论能对的上，但是开启 cookie 后，测试的结果对不上（以后再进行分析，目前一直无法测试到结果）</p>
+<p>半连接的逻辑比较复杂，算出最大连接后，还有其他逻辑进行判断。实际测试下来的情况，不开启 cookie 的结果和结论能对的上，但是开启 cookie 后，测试的结果对不上【<strong>以后再进行分析，目前一直无法测试到结果</strong>】</p>
 <p><strong>不开启cookie的结论如下</strong></p>
-<p>1、半连接最大连接 &gt; 0.75*tcp_max_syn_backlog，则 Drop SYN临界值为 0.75*tcp_max_syn_backlog +1【+1是因为判断条件是大于号】</p>
+<p>1、半连接最大连接 &gt; 0.75*tcp_max_syn_backlog，则 Drop SYN临界值为 0.75*tcp_max_syn_backlog +1【+1是因为判断条件是大于号，另外0.75乘法后的结果不确定是否是四舍五入还是向上取整，但是从实际结果来看小点数如果是 0.5 结果是按照 1 来计算】</p>
 <p>2、半连接最大连接 &lt;= 0.75*tcp_max_syn_backlog，则 Drop SYN临界值为 半连接最大连接</p>
 <p>【tcp_v4_conn_request 函数的第三处判断，按照代码判断 等于号 应是上述 2 的结论，但是由于 测试中的 256除以0.75 不是整数，无法进一步确认等于号 =】</p>
 <p><strong>开启cookie的结论如下：</strong></p>
