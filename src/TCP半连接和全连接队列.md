@@ -228,6 +228,11 @@ Linux 3.10.0 的测试结果如下：
 实验一：syncookies=0，somaxconn=1024，backlog=1024，tcp_max_syn_backlog=128
 计算出的半连接队列最大长度为 256
 当半连接队列长度增长至 96+1 后，后续 SYN 请求就会触发 Drop
+# 客户端进行压测
+hping3 -S -p 8888 --flood 192.168.56.101
+# 服务端每秒获取 SYN_RECV 连接数
+while true;do echo $(sudo netstat -nat | grep :8888 | grep 'SYN_RECV'  | wc -l);sleep 1;done
+while true;do echo $(ss -n state syn-recv sport = :8888 | wc -l);sleep 1;done
 
 其他的参数试验见表格结果。
 ```
