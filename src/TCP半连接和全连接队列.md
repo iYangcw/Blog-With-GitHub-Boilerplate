@@ -1,6 +1,6 @@
 ---
 layout: post
-title: TCP办连接和全连接信息
+title: TCP半连接和全连接队列
 slug: TCP
 date: 2023-03-28 14:50
 status: publish
@@ -9,7 +9,7 @@ categories:
   - Maverick
 tags:
   - TCP
-excerpt: 这是一篇示例文章，在这里你可以看到常用页面元素的显示效果。
+excerpt: 关于TCP半连接和全连接队列问题
 ---
 
 原始文档为以下三篇，根据相关文档进行的整理。
