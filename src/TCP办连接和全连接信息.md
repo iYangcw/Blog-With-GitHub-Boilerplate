@@ -1,15 +1,14 @@
 ---
 layout: post
-title: Hello World!
-slug: typography
+title: TCP办连接和全连接信息
+slug: TCP
 date: 2023-03-28 14:50
 status: publish
 author: AlanDecode
 categories: 
   - Maverick
 tags:
-  - Design
-  - Typography
+  - TCP
 excerpt: 这是一篇示例文章，在这里你可以看到常用页面元素的显示效果。
 ---
 
