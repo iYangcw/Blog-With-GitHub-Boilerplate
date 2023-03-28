@@ -19,7 +19,7 @@
     <script>
         var ExSearchConfig = {
             root: "",
-            api: "/Blog-With-GitHub-Boilerplate/26ce00c96e20fa65833ffac56688cf5d.json"
+            api: "/Blog-With-GitHub-Boilerplate/d45729b0250bfbbf5f167fb226f143fb.json"
         }
     </script>
     
@@ -306,6 +306,11 @@ sudo<span class="w"> </span>sysctl<span class="w"> </span>-w<span class="w"> </s
 <div class="highlight"><pre><span></span>实验一：syncookies<span class="o">=</span><span class="m">0</span>，somaxconn<span class="o">=</span><span class="m">1024</span>，backlog<span class="o">=</span><span class="m">1024</span>，tcp_max_syn_backlog<span class="o">=</span><span class="m">128</span>
 计算出的半连接队列最大长度为<span class="w"> </span><span class="m">256</span>
 当半连接队列长度增长至<span class="w"> </span><span class="m">96</span>+1<span class="w"> </span>后，后续<span class="w"> </span>SYN<span class="w"> </span>请求就会触发<span class="w"> </span>Drop
+<span class="c1"># 客户端进行压测</span>
+hping3<span class="w"> </span>-S<span class="w"> </span>-p<span class="w"> </span><span class="m">8888</span><span class="w"> </span>--flood<span class="w"> </span><span class="m">192</span>.168.56.101
+<span class="c1"># 服务端每秒获取 SYN_RECV 连接数</span>
+<span class="k">while</span><span class="w"> </span>true<span class="p">;</span><span class="k">do</span><span class="w"> </span><span class="nb">echo</span><span class="w"> </span><span class="k">$(</span>sudo<span class="w"> </span>netstat<span class="w"> </span>-nat<span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>:8888<span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span><span class="s1">&#39;SYN_RECV&#39;</span><span class="w">  </span><span class="p">|</span><span class="w"> </span>wc<span class="w"> </span>-l<span class="k">)</span><span class="p">;</span>sleep<span class="w"> </span><span class="m">1</span><span class="p">;</span><span class="k">done</span>
+<span class="k">while</span><span class="w"> </span>true<span class="p">;</span><span class="k">do</span><span class="w"> </span><span class="nb">echo</span><span class="w"> </span><span class="k">$(</span>ss<span class="w"> </span>-n<span class="w"> </span>state<span class="w"> </span>syn-recv<span class="w"> </span><span class="nv">sport</span><span class="w"> </span><span class="o">=</span><span class="w"> </span>:8888<span class="w"> </span><span class="p">|</span><span class="w"> </span>wc<span class="w"> </span>-l<span class="k">)</span><span class="p">;</span>sleep<span class="w"> </span><span class="m">1</span><span class="p">;</span><span class="k">done</span>
 
 其他的参数试验见表格结果。
 </pre></div>
