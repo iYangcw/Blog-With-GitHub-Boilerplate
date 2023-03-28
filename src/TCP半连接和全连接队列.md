@@ -4,7 +4,7 @@ title: TCP半连接和全连接队列
 slug: TCP
 date: 2023-03-28 14:50
 status: publish
-author: AlanDecode
+author: Sai
 categories: 
   - Maverick
 tags:
