@@ -203,7 +203,7 @@ sudo sysctl -w net.ipv4.tcp_syncookies=1
 
 实际测试的结果如下，按照cookie是否开启进行测试验证。
 
-[Google 表格链接](https://docs.google.com/spreadsheets/d/1uz_1QSTsegHr6qqmq0PG1Y6c6RLFz5Y2FfkCma9jTkY/edit?usp=sharing)
+[Google 表格链接](https://docs.google.com/spreadsheets/d/1uz_1QSTsegHr6qqmq0PG1Y6c6RLFz5Y2FfkCma9jTkY/edit?usp=sharing) ：Sheet里面已经写好了部分计算公式
 
 **没开启cookie的结果如下：**
 
