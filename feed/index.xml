@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='UTF-8'?>
-<rss xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/" version="2.0"><channel><title>个人博客</title><link>/Blog-With-GitHub-Boilerplate/</link><description>只坚持一种正义。我的正义。</description><docs>http://www.rssboard.org/rss-specification</docs><generator>python-feedgen</generator><image><url>/Blog-With-GitHub-Boilerplate/logo.png</url><title>个人博客</title><link>/Blog-With-GitHub-Boilerplate/</link></image><language>zh-CN</language><lastBuildDate>Tue, 28 Mar 2023 14:22:50 +0806</lastBuildDate><pubDate>Tue, 28 Mar 2023 14:22:50 +0806</pubDate><item><title>Hello World!</title><link>/Blog-With-GitHub-Boilerplate/archives/typography/</link><description>&lt;div class="notice"&gt;这是一篇示例文章，在这里你可以看到常用页面元素的显示效果，同时也是 Markdown 语法的参考文章。保留或者删除本文，开始自己的创作吧！&lt;/div&gt;&lt;h2&gt;L2 Heading&lt;/h2&gt;
+<rss xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/" version="2.0"><channel><title>个人博客</title><link>/Blog-With-GitHub-Boilerplate/</link><description>只坚持一种正义。我的正义。</description><docs>http://www.rssboard.org/rss-specification</docs><generator>python-feedgen</generator><image><url>/Blog-With-GitHub-Boilerplate/logo.png</url><title>个人博客</title><link>/Blog-With-GitHub-Boilerplate/</link></image><language>zh-CN</language><lastBuildDate>Tue, 28 Mar 2023 14:32:32 +0806</lastBuildDate><pubDate>Tue, 28 Mar 2023 14:32:32 +0806</pubDate><item><title>Hello World!</title><link>/Blog-With-GitHub-Boilerplate/archives/typography/</link><description>&lt;div class="notice"&gt;这是一篇示例文章，在这里你可以看到常用页面元素的显示效果，同时也是 Markdown 语法的参考文章。保留或者删除本文，开始自己的创作吧！&lt;/div&gt;&lt;h2&gt;L2 Heading&lt;/h2&gt;
 &lt;h3&gt;L3 Heading&lt;/h3&gt;
 &lt;h4&gt;L4 Heading&lt;/h4&gt;
 &lt;h5&gt;L5 Heading&lt;/h5&gt;
@@ -210,7 +210,7 @@ sudo&lt;span class="w"&gt; &lt;/span&gt;sysctl&lt;span class="w"&gt; &lt;/span&g
 &lt;p&gt;&lt;figure style="flex: 56.20031796502385" &gt;&lt;img width="707" height="629" src="https://raw.githubusercontent.com/iYangcw/Photo/master/sys_length_calc.png" /&gt;&lt;/figure&gt;&lt;/p&gt;
 &lt;p&gt;&lt;strong&gt;注意：第一个判断条件 「当前半连接队列是否已超过半连接队列最大长度」在不同内核版本中的判断不一样，引用文章的 Linux 4.19.91 内核判断的是当前半连接队列长度是否 &amp;gt;= 全连接队列最大长度，但是本文实验的 Linux 3.10.0 正好满足该截图&lt;/strong&gt;&lt;/p&gt;
 &lt;p&gt;实际测试的结果如下，按照cookie是否开启进行测试验证。&lt;/p&gt;
-&lt;p&gt;&lt;a href="https://docs.google.com/spreadsheets/d/1uz_1QSTsegHr6qqmq0PG1Y6c6RLFz5Y2FfkCma9jTkY/edit?usp=sharing"&gt;Google 表格链接&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;&lt;a href="https://docs.google.com/spreadsheets/d/1uz_1QSTsegHr6qqmq0PG1Y6c6RLFz5Y2FfkCma9jTkY/edit?usp=sharing"&gt;Google 表格链接&lt;/a&gt; ：Sheet里面已经写好了部分计算公式&lt;/p&gt;
 &lt;p&gt;&lt;strong&gt;没开启cookie的结果如下：&lt;/strong&gt;&lt;/p&gt;
 &lt;p&gt;Linux 3.10.0 的测试结果如下：&lt;/p&gt;
 &lt;p&gt;字段 a = max(min(backlog,somaxconn,sysctl_max_sys_backlog),8)&lt;/p&gt;
