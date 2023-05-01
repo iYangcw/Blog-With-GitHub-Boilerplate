@@ -1,7 +1,7 @@
 ---
 layout: post
-title: TCP 发送窗口、接收窗口、wmem、rmem 关系
-slug: TCP_Buffer
+title: TCP发送窗口、接收窗口、wmem、rmem 关系
+slug: TCP发送窗口、接收窗口、wmem、rmem 关系
 date: 2023-05-01 14:00
 status: publish
 author: Sai
@@ -9,7 +9,7 @@ categories:
   - Maverick
 tags:
   - TCP
-excerpt: TCP 发送窗口、接收窗口、wmem、rmem 关系
+excerpt: TCP发送窗口、接收窗口、wmem、rmem 关系
 ---
 
 # 基础环境
@@ -407,8 +407,6 @@ BDP来设置最大接收窗口（可计算出最大读缓存）。BDP叫做带�
                             bl<back_log>,d<sock_drop>)
 ```
 
-
-
 # 参考链接
 
 [Analyse Slow Networks with TCP Zero Window](https://www.golinuxcloud.com/wireshark-tcp-zero-window/)
@@ -418,6 +416,8 @@ BDP来设置最大接收窗口（可计算出最大读缓存）。BDP叫做带�
 [长肥管道(LFT)中TCP的艰难处境与打法](https://blog.csdn.net/dog250/article/details/113020804)
 
 [Why Your Application only Uses 10Mbps Even the Link is 1Gbps?](https://www.cisco.com/c/en/us/support/docs/ip/transmission-control-protocol-tcp/200943-Why-Your-Application-only-Uses-10Mbps-Ev.html)
+
+[TCP Throughput Calculator](https://www.switch.ch/network/tools/tcp_throughput/)
 
 
 
