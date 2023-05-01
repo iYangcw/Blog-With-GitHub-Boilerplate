@@ -100,10 +100,6 @@ server 是以比较稳定的处理包，然后有100ms的延时
 --延时 10ms 且client 的 rmem 改成 4096，17 KB/s
 client 角度来看，包比较乱
 server 角度来说，连续小包（几千的样子）汇总发送,包的大小会有 重复递增的样子
-
---延时 100ms 且server 的 rmem 改成 4096，4.87 MB/s[只是记录用]
-client 角度来看，包比较乱
-server 角度来说，连续小包（几千的样子）汇总发送,包的大小会有 重复递增的样子
 ```
 
 
@@ -178,11 +174,17 @@ $ curl http://192.168.56.101:8089/iso.tar --output ./result
 
 server 抓包详情
 
-![image-20230423133802553](https://raw.githubusercontent.com/iYangcw/Photo/master/image-20230423133802553.png)
+![image-20230501160506654](https://raw.githubusercontent.com/iYangcw/Photo/master/image-20230501160506654.png)
 
 Wireshark 菜单路径：Statistics >> TCP Stream Graphs >> Time Sequence （Stevens）
 
+Time Sequence （Stevens）图能看到两个点之间，time相减为 0.1秒
+
 ![](https://raw.githubusercontent.com/iYangcw/Photo/master/server_dely_100ms.png)
+
+**我的实验过程中，Round Trip Time Graphs 看不出来 rtt 是固定 100ms 的。**但是可以通过点击 Switch Direction 来看出 rtt
+
+![image-20230501160602666](https://raw.githubusercontent.com/iYangcw/Photo/master/image-20230501160602666.png)
 
 
 
@@ -211,7 +213,7 @@ $ curl http://192.168.56.101:8089/iso.tar --output ./result_01
   0 2539M    0 1399k    0     0  14436      0 51:14:22  0:01:39 51:12:43 14458
 ```
 
-
+截图见**实验一**结论
 
 ## 实验四：server 增加 100ms 延时，server 修改wmem
 
@@ -275,32 +277,9 @@ $ curl http://192.168.56.101:8089/iso.tar --output ./result_01
   0 2539M    0 20.6M    0     0   123k      0  5:50:08  0:02:50  5:47:18  123k
 ```
 
+见 **结论二** 截图 
 
-
-## 实验六：server 增加 100ms 延时，server 修改 rmem
-
-```bash
-# Server
-tc qdisc show dev enp0s8
-tc qdisc del dev enp0s8 root
-tc qdisc add dev enp0s8 root netem delay 100ms
-sysctl -w net.ipv4.tcp_wmem="4096 16384 4194304"
-sysctl -w net.ipv4.tcp_rmem="4096 4096 4096"
-# Client
-tcpdump -i enp0s8 -n host  ${serverIP} -w client_delayServer_100ms_rmem_4096.pcap
-# Server
-tcpdump -i enp0s8 -n host  ${clientIP} -w server_delayServer_100ms_rmem_4096.pcap
-
-# 结果, 大概平均下载速度是 4.87 KB/s
-$ curl http://192.168.56.101:8089/iso.tar --output ./result_04
-  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
-                                 Dload  Upload   Total   Spent    Left  Speed
- 63 2539M   63 1599M    0     0  4991k      0  0:08:40  0:05:28  0:03:12 4030k
-```
-
-
-
-## 实验七：curl 增加速度控制
+## 实验六：curl 增加速度控制
 
 ```bash
 # client & server 保持默认值不动，限速设置小一点，感觉抓包分析更好一点，分别尝试了1k、100k、1M
@@ -343,7 +322,7 @@ plantegg 任总的这张图反复看，能有点理解了
 
 实验三 rmen 的截图，从 No 15 开始看，差不多是 server > client，【TCP Window Full 过会看】然后 No 17 中，client > server ACK 回复，然后过了 0.1 秒，No 18 又开始发送给 client 了。
 
-而且 TCP Window Full 很频繁，窗口被填满了，所以下载的速度很慢。截图里能看到 source=client ip 的 win=1460。
+而且 TCP Window Full 很频繁，窗口被填满了，所以下载的速度很慢。截图里能看到 client 的 win=1460。
 
 简单按照步骤描述下过程
 
@@ -355,11 +334,9 @@ plantegg 任总的这张图反复看，能有点理解了
 
 4、No 14: client 继续说我的接收窗口为 1460
 
-
+![](https://raw.githubusercontent.com/iYangcw/Photo/master/rmem_client_4096.png)
 
 实验四 wmen 的截图，server 几个包发给 client，然后 client ack 回复，反复该过程，包的发送比较平稳
-
-![](https://raw.githubusercontent.com/iYangcw/Photo/master/rmem_client_4096.png)
 
 ![](https://raw.githubusercontent.com/iYangcw/Photo/master/wmem_server_4096.png)
 
@@ -367,27 +344,27 @@ plantegg 任总的这张图反复看，能有点理解了
 
 **实验三 和 实验五** 都是修改 client rmen = 4096，只是一个是 server 端设置了 100ms 和 10ms 延时，但是结果是 17 KB/s 和 123 KB/s 的差距。
 
-rrt 增大了，下载速度会下降。
+rrt 增大了，下载速度会下降。下面两个截图，10ms 的 window Scaling 和 Throughput 都要比 100ms 的密集
+
+![](https://raw.githubusercontent.com/iYangcw/Photo/master/rmem.png)
+
+![](https://raw.githubusercontent.com/iYangcw/Photo/master/throughput.png)
 
 plantegg 任总的这张图反复看【**结论二的只需要看图片左边即可**】，能有点理解了
 
 延时增加了，那说明链路上的包也多了，client 接收包的速度慢了，那自然下载速度变慢。
 
-BDP 由于和带宽有关，但是两台虚拟机的带宽，目前我计算还有点问题，不清楚是原始状态进行 iperf3 计算，还是调整了系统参数再去计算，目前 BDP 的理解还不够深，以下是 BDP 的计算方法。
-
-**BDP 举例计算信息如下**
-
-BDP来设置最大接收窗口（可计算出最大读缓存）。BDP叫做带宽时延积，也就是带宽与网络时延的乘积，例如若我们的带宽为2Gbps，时延为10ms，那么带宽时延积BDP则为2G/8 * 0.01=2.5MB，所以这样的网络中可以设最大接收窗口为2.5MB
-
 ![rmem_rtt](https://raw.githubusercontent.com/iYangcw/Photo/master/rmem_rtt.png)
 
-## 结论三：网速和 wmem rmem rtt 带宽 的关系
+## 结论三：汇总：网速和 wmem rmem rtt 带宽 的关系
 
-减少 rtt
+减少 rtt 和 增大带宽 影响带宽就不说了。
 
-增大带宽
+client 的 recv buffer 太小 且 rtt 很大的情况下，网速会变慢
 
-增加 server 的 send buffer （对应 wmem）
+
+
+增加 server 的 send buffer （对应 wmem），相当于
 
 增加 client 的 recv buffer （对应 rmem）
 
@@ -406,6 +383,12 @@ BDP来设置最大接收窗口（可计算出最大读缓存）。BDP叫做带�
                             f<fwd_alloc>,w<wmem_queued>,o<opt_mem>,
                             bl<back_log>,d<sock_drop>)
 ```
+
+# 待办
+
+BDP
+
+丢失率
 
 # 参考链接
 
