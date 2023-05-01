@@ -19,7 +19,7 @@
     <script>
         var ExSearchConfig = {
             root: "",
-            api: "/Blog-With-GitHub-Boilerplate/98a347d9edd5f274d7a4885184540b86.json"
+            api: "/Blog-With-GitHub-Boilerplate/dcdd5e103b1f1f68da002be702cb0a37.json"
         }
     </script>
     
@@ -148,10 +148,6 @@ server<span class="w"> </span>是以比较稳定的处理包，然后有100ms的
 --延时<span class="w"> </span>10ms<span class="w"> </span>且client<span class="w"> </span>的<span class="w"> </span>rmem<span class="w"> </span>改成<span class="w"> </span><span class="m">4096</span>，17<span class="w"> </span>KB/s
 client<span class="w"> </span>角度来看，包比较乱
 server<span class="w"> </span>角度来说，连续小包（几千的样子）汇总发送,包的大小会有<span class="w"> </span>重复递增的样子
-
---延时<span class="w"> </span>100ms<span class="w"> </span>且server<span class="w"> </span>的<span class="w"> </span>rmem<span class="w"> </span>改成<span class="w"> </span><span class="m">4096</span>，4.87<span class="w"> </span>MB/s<span class="o">[</span>只是记录用<span class="o">]</span>
-client<span class="w"> </span>角度来看，包比较乱
-server<span class="w"> </span>角度来说，连续小包（几千的样子）汇总发送,包的大小会有<span class="w"> </span>重复递增的样子
 </pre></div>
 <h1>实验记录</h1>
 <h2>实验一：正常状态</h2>
@@ -198,9 +194,12 @@ $<span class="w"> </span>curl<span class="w"> </span>http://192.168.56.101:8089/
 <span class="m">100</span><span class="w"> </span>2539M<span class="w">  </span><span class="m">100</span><span class="w"> </span>2539M<span class="w">    </span><span class="m">0</span><span class="w">     </span><span class="m">0</span><span class="w">  </span>5619k<span class="w">      </span><span class="m">0</span><span class="w">  </span><span class="m">0</span>:07:42<span class="w">  </span><span class="m">0</span>:07:42<span class="w"> </span>--:--:--<span class="w"> </span>4563k
 </pre></div>
 <p>server 抓包详情</p>
-<p><figure style="flex: 205.63991323210413" ><img width="1896" height="461" src="https://raw.githubusercontent.com/iYangcw/Photo/master/image-20230423133802553.png" /><figcaption>image-20230423133802553</figcaption></figure></p>
+<p><figure style="flex: 218.38235294117646" ><img width="1485" height="340" src="https://raw.githubusercontent.com/iYangcw/Photo/master/image-20230501160506654.png" /><figcaption>image-20230501160506654</figcaption></figure></p>
 <p>Wireshark 菜单路径：Statistics &gt;&gt; TCP Stream Graphs &gt;&gt; Time Sequence （Stevens）</p>
+<p>Time Sequence （Stevens）图能看到两个点之间，time相减为 0.1秒</p>
 <p><figure style="flex: 132.61851015801355" ><img width="2350" height="886" src="https://raw.githubusercontent.com/iYangcw/Photo/master/server_dely_100ms.png" /></figure></p>
+<p><strong>我的实验过程中，Round Trip Time Graphs 看不出来 rtt 是固定 100ms 的。</strong>但是可以通过点击 Switch Direction 来看出 rtt</p>
+<p><figure style="flex: 83.79446640316206" ><img width="1272" height="759" src="https://raw.githubusercontent.com/iYangcw/Photo/master/image-20230501160602666.png" /><figcaption>image-20230501160602666</figcaption></figure></p>
 <h2>实验三：server 增加 100ms 延时，client 修改 rmem</h2>
 <div class="highlight"><pre><span></span><span class="c1"># 两边原始值</span>
 sysctl<span class="w"> </span>-w<span class="w"> </span>net.ipv4.tcp_wmem<span class="o">=</span><span class="s2">&quot;4096 16384 4194304&quot;</span>
@@ -223,6 +222,7 @@ $<span class="w"> </span>curl<span class="w"> </span>http://192.168.56.101:8089/
 <span class="w">                                 </span>Dload<span class="w">  </span>Upload<span class="w">   </span>Total<span class="w">   </span>Spent<span class="w">    </span>Left<span class="w">  </span>Speed
 <span class="w">  </span><span class="m">0</span><span class="w"> </span>2539M<span class="w">    </span><span class="m">0</span><span class="w"> </span>1399k<span class="w">    </span><span class="m">0</span><span class="w">     </span><span class="m">0</span><span class="w">  </span><span class="m">14436</span><span class="w">      </span><span class="m">0</span><span class="w"> </span><span class="m">51</span>:14:22<span class="w">  </span><span class="m">0</span>:01:39<span class="w"> </span><span class="m">51</span>:12:43<span class="w"> </span><span class="m">14458</span>
 </pre></div>
+<p>截图见<strong>实验一</strong>结论</p>
 <h2>实验四：server 增加 100ms 延时，server 修改wmem</h2>
 <div class="highlight"><pre><span></span><span class="c1"># 两边原始值</span>
 sysctl<span class="w"> </span>-w<span class="w"> </span>net.ipv4.tcp_wmem<span class="o">=</span><span class="s2">&quot;4096 16384 4194304&quot;</span>
@@ -271,25 +271,8 @@ $<span class="w"> </span>curl<span class="w"> </span>http://192.168.56.101:8089/
 <span class="w">                                 </span>Dload<span class="w">  </span>Upload<span class="w">   </span>Total<span class="w">   </span>Spent<span class="w">    </span>Left<span class="w">  </span>Speed
 <span class="w">  </span><span class="m">0</span><span class="w"> </span>2539M<span class="w">    </span><span class="m">0</span><span class="w"> </span><span class="m">20</span>.6M<span class="w">    </span><span class="m">0</span><span class="w">     </span><span class="m">0</span><span class="w">   </span>123k<span class="w">      </span><span class="m">0</span><span class="w">  </span><span class="m">5</span>:50:08<span class="w">  </span><span class="m">0</span>:02:50<span class="w">  </span><span class="m">5</span>:47:18<span class="w">  </span>123k
 </pre></div>
-<h2>实验六：server 增加 100ms 延时，server 修改 rmem</h2>
-<div class="highlight"><pre><span></span><span class="c1"># Server</span>
-tc<span class="w"> </span>qdisc<span class="w"> </span>show<span class="w"> </span>dev<span class="w"> </span>enp0s8
-tc<span class="w"> </span>qdisc<span class="w"> </span>del<span class="w"> </span>dev<span class="w"> </span>enp0s8<span class="w"> </span>root
-tc<span class="w"> </span>qdisc<span class="w"> </span>add<span class="w"> </span>dev<span class="w"> </span>enp0s8<span class="w"> </span>root<span class="w"> </span>netem<span class="w"> </span>delay<span class="w"> </span>100ms
-sysctl<span class="w"> </span>-w<span class="w"> </span>net.ipv4.tcp_wmem<span class="o">=</span><span class="s2">&quot;4096 16384 4194304&quot;</span>
-sysctl<span class="w"> </span>-w<span class="w"> </span>net.ipv4.tcp_rmem<span class="o">=</span><span class="s2">&quot;4096 4096 4096&quot;</span>
-<span class="c1"># Client</span>
-tcpdump<span class="w"> </span>-i<span class="w"> </span>enp0s8<span class="w"> </span>-n<span class="w"> </span>host<span class="w">  </span><span class="si">${</span><span class="nv">serverIP</span><span class="si">}</span><span class="w"> </span>-w<span class="w"> </span>client_delayServer_100ms_rmem_4096.pcap
-<span class="c1"># Server</span>
-tcpdump<span class="w"> </span>-i<span class="w"> </span>enp0s8<span class="w"> </span>-n<span class="w"> </span>host<span class="w">  </span><span class="si">${</span><span class="nv">clientIP</span><span class="si">}</span><span class="w"> </span>-w<span class="w"> </span>server_delayServer_100ms_rmem_4096.pcap
-
-<span class="c1"># 结果, 大概平均下载速度是 4.87 KB/s</span>
-$<span class="w"> </span>curl<span class="w"> </span>http://192.168.56.101:8089/iso.tar<span class="w"> </span>--output<span class="w"> </span>./result_04
-<span class="w">  </span>%<span class="w"> </span>Total<span class="w">    </span>%<span class="w"> </span>Received<span class="w"> </span>%<span class="w"> </span>Xferd<span class="w">  </span>Average<span class="w"> </span>Speed<span class="w">   </span>Time<span class="w">    </span>Time<span class="w">     </span>Time<span class="w">  </span>Current
-<span class="w">                                 </span>Dload<span class="w">  </span>Upload<span class="w">   </span>Total<span class="w">   </span>Spent<span class="w">    </span>Left<span class="w">  </span>Speed
-<span class="w"> </span><span class="m">63</span><span class="w"> </span>2539M<span class="w">   </span><span class="m">63</span><span class="w"> </span>1599M<span class="w">    </span><span class="m">0</span><span class="w">     </span><span class="m">0</span><span class="w">  </span>4991k<span class="w">      </span><span class="m">0</span><span class="w">  </span><span class="m">0</span>:08:40<span class="w">  </span><span class="m">0</span>:05:28<span class="w">  </span><span class="m">0</span>:03:12<span class="w"> </span>4030k
-</pre></div>
-<h2>实验七：curl 增加速度控制</h2>
+<p>见 <strong>结论二</strong> 截图</p>
+<h2>实验六：curl 增加速度控制</h2>
 <div class="highlight"><pre><span></span><span class="c1"># client &amp; server 保持默认值不动，限速设置小一点，感觉抓包分析更好一点，分别尝试了1k、100k、1M</span>
 curl<span class="w"> </span>--limit-rate<span class="w"> </span>1k<span class="w"> </span>http://192.168.56.101:8089/iso.tar<span class="w"> </span>--output<span class="w"> </span>./result_04
 
@@ -312,28 +295,27 @@ tcpdump<span class="w"> </span>-i<span class="w"> </span>enp0s8<span class="w"> 
 <p><figure style="flex: 78.54077253218884" ><img width="732" height="466" src="https://raw.githubusercontent.com/iYangcw/Photo/master/time.png" /></figure></p>
 <p>分析 实验三和实验四中 server 端抓包的结果：</p>
 <p>实验三 rmen 的截图，从 No 15 开始看，差不多是 server &gt; client，【TCP Window Full 过会看】然后 No 17 中，client &gt; server ACK 回复，然后过了 0.1 秒，No 18 又开始发送给 client 了。</p>
-<p>而且 TCP Window Full 很频繁，窗口被填满了，所以下载的速度很慢。截图里能看到 source=client ip 的 win=1460。</p>
+<p>而且 TCP Window Full 很频繁，窗口被填满了，所以下载的速度很慢。截图里能看到 client 的 win=1460。</p>
 <p>简单按照步骤描述下过程</p>
 <p>1、No 11: client 表示我的接收窗口为 1460</p>
 <p>2、No 12: server 表示我的接收窗口为 29056，以及发送了 730 长度的包</p>
 <p>3、No 13: server 继续发送了 730 长度的包，由于 730 + 730 等于 client 的接收窗口 1460，所以提示 TCP WIndow Full</p>
 <p>4、No 14: client 继续说我的接收窗口为 1460</p>
-<p>实验四 wmen 的截图，server 几个包发给 client，然后 client ack 回复，反复该过程，包的发送比较平稳</p>
 <p><figure style="flex: 153.87596899224806" ><img width="2382" height="774" src="https://raw.githubusercontent.com/iYangcw/Photo/master/rmem_client_4096.png" /></figure></p>
+<p>实验四 wmen 的截图，server 几个包发给 client，然后 client ack 回复，反复该过程，包的发送比较平稳</p>
 <p><figure style="flex: 157.04225352112675" ><img width="2230" height="710" src="https://raw.githubusercontent.com/iYangcw/Photo/master/wmem_server_4096.png" /></figure></p>
 <h2>结论二：rmem 改小，查看 调整 rrt 后来对比速度</h2>
 <p><strong>实验三 和 实验五</strong> 都是修改 client rmen = 4096，只是一个是 server 端设置了 100ms 和 10ms 延时，但是结果是 17 KB/s 和 123 KB/s 的差距。</p>
-<p>rrt 增大了，下载速度会下降。</p>
+<p>rrt 增大了，下载速度会下降。下面两个截图，10ms 的 window Scaling 和 Throughput 都要比 100ms 的密集</p>
+<p><figure style="flex: 155.5194805194805" ><img width="1916" height="616" src="https://raw.githubusercontent.com/iYangcw/Photo/master/rmem.png" /></figure></p>
+<p><figure style="flex: 152.70700636942675" ><img width="1918" height="628" src="https://raw.githubusercontent.com/iYangcw/Photo/master/throughput.png" /></figure></p>
 <p>plantegg 任总的这张图反复看【<strong>结论二的只需要看图片左边即可</strong>】，能有点理解了</p>
 <p>延时增加了，那说明链路上的包也多了，client 接收包的速度慢了，那自然下载速度变慢。</p>
-<p>BDP 由于和带宽有关，但是两台虚拟机的带宽，目前我计算还有点问题，不清楚是原始状态进行 iperf3 计算，还是调整了系统参数再去计算，目前 BDP 的理解还不够深，以下是 BDP 的计算方法。</p>
-<p><strong>BDP 举例计算信息如下</strong></p>
-<p>BDP来设置最大接收窗口（可计算出最大读缓存）。BDP叫做带宽时延积，也就是带宽与网络时延的乘积，例如若我们的带宽为2Gbps，时延为10ms，那么带宽时延积BDP则为2G/8 * 0.01=2.5MB，所以这样的网络中可以设最大接收窗口为2.5MB</p>
 <p><figure style="flex: 81.1449159327462" ><img width="4054" height="2498" src="https://raw.githubusercontent.com/iYangcw/Photo/master/rmem_rtt.png" /><figcaption>rmem_rtt</figcaption></figure></p>
-<h2>结论三：网速和 wmem rmem rtt 带宽 的关系</h2>
-<p>减少 rtt</p>
-<p>增大带宽</p>
-<p>增加 server 的 send buffer （对应 wmem）</p>
+<h2>结论三：汇总：网速和 wmem rmem rtt 带宽 的关系</h2>
+<p>减少 rtt 和 增大带宽 影响带宽就不说了。</p>
+<p>client 的 recv buffer 太小 且 rtt 很大的情况下，网速会变慢</p>
+<p>增加 server 的 send buffer （对应 wmem），相当于</p>
 <p>增加 client 的 recv buffer （对应 rmem）</p>
 <h1>ss 计算 tcp buffer size</h1>
 <p><a href="https://man7.org/linux/man-pages/man8/ss.8.html">man ss 链接</a></p>
@@ -345,6 +327,9 @@ tcpdump<span class="w"> </span>-i<span class="w"> </span>enp0s8<span class="w"> 
 <span class="w">                            </span>f&lt;fwd_alloc&gt;,w&lt;wmem_queued&gt;,o&lt;opt_mem&gt;,
 <span class="w">                            </span>bl&lt;back_log&gt;,d&lt;sock_drop&gt;<span class="o">)</span>
 </pre></div>
+<h1>待办</h1>
+<p>BDP</p>
+<p>丢失率</p>
 <h1>参考链接</h1>
 <p><a href="https://www.golinuxcloud.com/wireshark-tcp-zero-window/">Analyse Slow Networks with TCP Zero Window</a></p>
 <p><a href="https://plantegg.github.io/2019/09/28/%E5%B0%B1%E6%98%AF%E8%A6%81%E4%BD%A0%E6%87%82TCP--%E6%80%A7%E8%83%BD%E5%92%8C%E5%8F%91%E9%80%81%E6%8E%A5%E6%94%B6Buffer%E7%9A%84%E5%85%B3%E7%B3%BB/">TCP性能和发送接收窗口、Buffer的关系</a></p>
