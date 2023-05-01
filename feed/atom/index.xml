@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='UTF-8'?>
-<feed xmlns="http://www.w3.org/2005/Atom" xml:lang="zh-CN"><id>/Blog-With-GitHub-Boilerplate/</id><title>个人博客</title><updated>2023-05-01T09:32:39.238621+08:06</updated><author><name>Clover</name><email>test@email.com</email></author><link href="/Blog-With-GitHub-Boilerplate/" rel="alternate"/><generator uri="https://lkiesow.github.io/python-feedgen" version="0.9.0">python-feedgen</generator><logo>/Blog-With-GitHub-Boilerplate/logo.png</logo><subtitle>每天进步一点点</subtitle><entry><id>/Blog-With-GitHub-Boilerplate/archives/typography/</id><title>Hello World!</title><updated>2023-05-01T09:32:39.238747+00:00</updated><author><name>AlanDecode</name><email>test@email.com</email><uri>https://iyangcw.github.io/Blog-With-GitHub-Boilerplate/</uri></author><content>&lt;div class="notice"&gt;这是一篇示例文章，在这里你可以看到常用页面元素的显示效果，同时也是 Markdown 语法的参考文章。保留或者删除本文，开始自己的创作吧！&lt;/div&gt;&lt;h2&gt;L2 Heading&lt;/h2&gt;
+<feed xmlns="http://www.w3.org/2005/Atom" xml:lang="zh-CN"><id>/Blog-With-GitHub-Boilerplate/</id><title>个人博客</title><updated>2023-05-01T09:40:54.970182+08:06</updated><author><name>Clover</name><email>test@email.com</email></author><link href="/Blog-With-GitHub-Boilerplate/" rel="alternate"/><generator uri="https://lkiesow.github.io/python-feedgen" version="0.9.0">python-feedgen</generator><logo>/Blog-With-GitHub-Boilerplate/logo.png</logo><subtitle>每天进步一点点</subtitle><entry><id>/Blog-With-GitHub-Boilerplate/archives/typography/</id><title>Hello World!</title><updated>2023-05-01T09:40:54.970313+00:00</updated><author><name>AlanDecode</name><email>test@email.com</email><uri>https://iyangcw.github.io/Blog-With-GitHub-Boilerplate/</uri></author><content>&lt;div class="notice"&gt;这是一篇示例文章，在这里你可以看到常用页面元素的显示效果，同时也是 Markdown 语法的参考文章。保留或者删除本文，开始自己的创作吧！&lt;/div&gt;&lt;h2&gt;L2 Heading&lt;/h2&gt;
 &lt;h3&gt;L3 Heading&lt;/h3&gt;
 &lt;h4&gt;L4 Heading&lt;/h4&gt;
 &lt;h5&gt;L5 Heading&lt;/h5&gt;
@@ -78,7 +78,7 @@
 &lt;/table&gt;
 &lt;h2&gt;Link Card&lt;/h2&gt;
 &lt;div class="links"&gt;
-&lt;a style="display:block" target="_blank" href="https://www.imalan.cn" class="board-item"&gt;                 &lt;div class="board-thumb"&gt;&lt;img src="https://secure.gravatar.com/avatar/1741a6eef5c824899e347e4afcbaa75d?s=200&amp;r=G&amp;d="&gt;&lt;/div&gt;                 &lt;div class="board-title"&gt;AlanDecode&lt;/div&gt;&lt;/a&gt;&lt;/div&gt;&lt;hr&gt;&lt;div class="footnotes"&gt;&lt;ol&gt;&lt;li id="fn_1"&gt;Home page for AlanDecode &lt;a no-style href="#fn_ref_1"&gt;↩&lt;/a&gt;&lt;/li&gt;&lt;/ol&gt;&lt;/div&gt;</content><link href="/Blog-With-GitHub-Boilerplate/archives/typography/" rel="alternate"/><published>2019-12-18T16:50:00+08:06</published></entry><entry><id>/Blog-With-GitHub-Boilerplate/archives/TCP/</id><title>TCP半连接和全连接队列</title><updated>2023-05-01T09:32:39.238717+00:00</updated><author><name>Sai</name><email>test@email.com</email><uri>https://iyangcw.github.io/Blog-With-GitHub-Boilerplate/</uri></author><content>&lt;p&gt;原始文档为以下三篇，根据相关文档进行的整理。&lt;/p&gt;
+&lt;a style="display:block" target="_blank" href="https://www.imalan.cn" class="board-item"&gt;                 &lt;div class="board-thumb"&gt;&lt;img src="https://secure.gravatar.com/avatar/1741a6eef5c824899e347e4afcbaa75d?s=200&amp;r=G&amp;d="&gt;&lt;/div&gt;                 &lt;div class="board-title"&gt;AlanDecode&lt;/div&gt;&lt;/a&gt;&lt;/div&gt;&lt;hr&gt;&lt;div class="footnotes"&gt;&lt;ol&gt;&lt;li id="fn_1"&gt;Home page for AlanDecode &lt;a no-style href="#fn_ref_1"&gt;↩&lt;/a&gt;&lt;/li&gt;&lt;/ol&gt;&lt;/div&gt;</content><link href="/Blog-With-GitHub-Boilerplate/archives/typography/" rel="alternate"/><published>2019-12-18T16:50:00+08:06</published></entry><entry><id>/Blog-With-GitHub-Boilerplate/archives/TCP/</id><title>TCP半连接和全连接队列</title><updated>2023-05-01T09:40:54.970283+00:00</updated><author><name>Sai</name><email>test@email.com</email><uri>https://iyangcw.github.io/Blog-With-GitHub-Boilerplate/</uri></author><content>&lt;p&gt;原始文档为以下三篇，根据相关文档进行的整理。&lt;/p&gt;
 &lt;p&gt;&lt;a href="https://mp.weixin.qq.com/s/YpSlU1yaowTs-pF6R43hMw"&gt;从一次线上问题说起，详解 TCP 半连接队列、全连接队列&lt;/a&gt;&lt;/p&gt;
 &lt;p&gt;&lt;a href="https://xiaolincoding.com/network/3_tcp/tcp_queue.html#%E4%BB%80%E4%B9%88%E6%98%AF-tcp-%E5%8D%8A%E8%BF%9E%E6%8E%A5%E9%98%9F%E5%88%97%E5%92%8C%E5%85%A8%E8%BF%9E%E6%8E%A5%E9%98%9F%E5%88%97"&gt;TCP 半连接队列和全连接队列&lt;/a&gt;&lt;/p&gt;
 &lt;p&gt;&lt;a href="https://docs.google.com/spreadsheets/d/1uz_1QSTsegHr6qqmq0PG1Y6c6RLFz5Y2FfkCma9jTkY/edit?usp=sharing"&gt;详解 TCP 半连接队列与全连接队列&lt;/a&gt;&lt;/p&gt;
@@ -798,7 +798,7 @@ LISTEN&lt;span class="w"&gt;     &lt;/span&gt;&lt;span class="m"&gt;129&lt;/span
 &lt;ul&gt;
 &lt;li&gt;&lt;a href="https://blog.cloudflare.com/syn-packet-handling-in-the-wild/"&gt;https://blog.cloudflare.com/syn-packet-handling-in-the-wild/&lt;/a&gt;&lt;/li&gt;
 &lt;/ul&gt;
-</content><link href="/Blog-With-GitHub-Boilerplate/archives/TCP/" rel="alternate"/><published>2023-03-28T14:50:00+08:06</published></entry><entry><id>/Blog-With-GitHub-Boilerplate/archives/TCP发送窗口、接收窗口、wmem、rmem 关系/</id><title>TCP发送窗口、接收窗口、wmem、rmem 关系</title><updated>2023-05-01T09:32:39.238666+00:00</updated><author><name>Sai</name><email>test@email.com</email><uri>https://iyangcw.github.io/Blog-With-GitHub-Boilerplate/</uri></author><content>&lt;h1&gt;基础环境&lt;/h1&gt;
+</content><link href="/Blog-With-GitHub-Boilerplate/archives/TCP/" rel="alternate"/><published>2023-03-28T14:50:00+08:06</published></entry><entry><id>/Blog-With-GitHub-Boilerplate/archives/TCP发送窗口、接收窗口、wmem、rmem 关系/</id><title>TCP发送窗口、接收窗口、wmem、rmem 关系</title><updated>2023-05-01T09:40:54.970230+00:00</updated><author><name>Sai</name><email>test@email.com</email><uri>https://iyangcw.github.io/Blog-With-GitHub-Boilerplate/</uri></author><content>&lt;h1&gt;基础环境&lt;/h1&gt;
 &lt;p&gt;&lt;strong&gt;服务器信息&lt;/strong&gt;&lt;/p&gt;
 &lt;p&gt;Client：192.168.56.100&lt;/p&gt;
 &lt;p&gt;Server：192.168.56.101&lt;/p&gt;
@@ -991,7 +991,7 @@ $&lt;span class="w"&gt; &lt;/span&gt;curl&lt;span class="w"&gt; &lt;/span&gt;htt
 &lt;/pre&gt;&lt;/div&gt;
 &lt;p&gt;见 &lt;strong&gt;结论二&lt;/strong&gt; 截图&lt;/p&gt;
 &lt;h2&gt;实验六：curl 增加速度控制&lt;/h2&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="c1"&gt;# client &amp;amp; server 保持默认值不动，限速设置小一点，感觉抓包分析更好一点，分别尝试了1k、100k、1M&lt;/span&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="c1"&gt;# client &amp;amp; server 保持默认值不动，限速设置小一点，抓包分析更好一点，分别尝试了1k、100k、1M&lt;/span&gt;
 curl&lt;span class="w"&gt; &lt;/span&gt;--limit-rate&lt;span class="w"&gt; &lt;/span&gt;1k&lt;span class="w"&gt; &lt;/span&gt;http://192.168.56.101:8089/iso.tar&lt;span class="w"&gt; &lt;/span&gt;--output&lt;span class="w"&gt; &lt;/span&gt;./result_04
 
 &lt;span class="c1"&gt;# Client&lt;/span&gt;
@@ -1032,9 +1032,9 @@ tcpdump&lt;span class="w"&gt; &lt;/span&gt;-i&lt;span class="w"&gt; &lt;/span&gt
 &lt;p&gt;&lt;figure style="flex: 81.1449159327462" &gt;&lt;img width="4054" height="2498" src="https://raw.githubusercontent.com/iYangcw/Photo/master/rmem_rtt.png" /&gt;&lt;figcaption&gt;rmem_rtt&lt;/figcaption&gt;&lt;/figure&gt;&lt;/p&gt;
 &lt;h2&gt;结论三：汇总：网速和 wmem rmem rtt 带宽 的关系&lt;/h2&gt;
 &lt;p&gt;减少 rtt 和 增大带宽 影响带宽就不说了。&lt;/p&gt;
-&lt;p&gt;client 的 recv buffer 太小 且 rtt 很大的情况下，网速会变慢&lt;/p&gt;
-&lt;p&gt;增加 server 的 send buffer （对应 wmem），相当于&lt;/p&gt;
-&lt;p&gt;增加 client 的 recv buffer （对应 rmem）&lt;/p&gt;
+&lt;p&gt;client 的 recv buffer 太小 且 rtt 很大的情况下，网速会变慢。&lt;/p&gt;
+&lt;p&gt;增加 server 的 send buffer （对应 wmem），相当于仓库发货比较强&lt;/p&gt;
+&lt;p&gt;增加 client 的 recv buffer （对应 rmem），相当于仓库收获比较强&lt;/p&gt;
 &lt;h1&gt;ss 计算 tcp buffer size&lt;/h1&gt;
 &lt;p&gt;&lt;a href="https://man7.org/linux/man-pages/man8/ss.8.html"&gt;man ss 链接&lt;/a&gt;&lt;/p&gt;
 &lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="c1"&gt;# 注意下，tb 表示 snd_buf，字母 t 可以理解为 Transmit&lt;/span&gt;

@@ -19,7 +19,7 @@
     <script>
         var ExSearchConfig = {
             root: "",
-            api: "/Blog-With-GitHub-Boilerplate/dcdd5e103b1f1f68da002be702cb0a37.json"
+            api: "/Blog-With-GitHub-Boilerplate/ce2336cc668a9acf6bee92c7c583d9fb.json"
         }
     </script>
     
@@ -273,7 +273,7 @@ $<span class="w"> </span>curl<span class="w"> </span>http://192.168.56.101:8089/
 </pre></div>
 <p>见 <strong>结论二</strong> 截图</p>
 <h2>实验六：curl 增加速度控制</h2>
-<div class="highlight"><pre><span></span><span class="c1"># client &amp; server 保持默认值不动，限速设置小一点，感觉抓包分析更好一点，分别尝试了1k、100k、1M</span>
+<div class="highlight"><pre><span></span><span class="c1"># client &amp; server 保持默认值不动，限速设置小一点，抓包分析更好一点，分别尝试了1k、100k、1M</span>
 curl<span class="w"> </span>--limit-rate<span class="w"> </span>1k<span class="w"> </span>http://192.168.56.101:8089/iso.tar<span class="w"> </span>--output<span class="w"> </span>./result_04
 
 <span class="c1"># Client</span>
@@ -314,9 +314,9 @@ tcpdump<span class="w"> </span>-i<span class="w"> </span>enp0s8<span class="w"> 
 <p><figure style="flex: 81.1449159327462" ><img width="4054" height="2498" src="https://raw.githubusercontent.com/iYangcw/Photo/master/rmem_rtt.png" /><figcaption>rmem_rtt</figcaption></figure></p>
 <h2>结论三：汇总：网速和 wmem rmem rtt 带宽 的关系</h2>
 <p>减少 rtt 和 增大带宽 影响带宽就不说了。</p>
-<p>client 的 recv buffer 太小 且 rtt 很大的情况下，网速会变慢</p>
-<p>增加 server 的 send buffer （对应 wmem），相当于</p>
-<p>增加 client 的 recv buffer （对应 rmem）</p>
+<p>client 的 recv buffer 太小 且 rtt 很大的情况下，网速会变慢。</p>
+<p>增加 server 的 send buffer （对应 wmem），相当于仓库发货比较强</p>
+<p>增加 client 的 recv buffer （对应 rmem），相当于仓库收获比较强</p>
 <h1>ss 计算 tcp buffer size</h1>
 <p><a href="https://man7.org/linux/man-pages/man8/ss.8.html">man ss 链接</a></p>
 <div class="highlight"><pre><span></span><span class="c1"># 注意下，tb 表示 snd_buf，字母 t 可以理解为 Transmit</span>

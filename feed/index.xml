@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='UTF-8'?>
-<rss xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/" version="2.0"><channel><title>个人博客</title><link>/Blog-With-GitHub-Boilerplate/</link><description>每天进步一点点</description><docs>http://www.rssboard.org/rss-specification</docs><generator>python-feedgen</generator><image><url>/Blog-With-GitHub-Boilerplate/logo.png</url><title>个人博客</title><link>/Blog-With-GitHub-Boilerplate/</link></image><language>zh-CN</language><lastBuildDate>Mon, 01 May 2023 09:32:39 +0806</lastBuildDate><pubDate>Mon, 01 May 2023 09:32:39 +0806</pubDate><item><title>Hello World!</title><link>/Blog-With-GitHub-Boilerplate/archives/typography/</link><description>&lt;div class="notice"&gt;这是一篇示例文章，在这里你可以看到常用页面元素的显示效果，同时也是 Markdown 语法的参考文章。保留或者删除本文，开始自己的创作吧！&lt;/div&gt;&lt;h2&gt;L2 Heading&lt;/h2&gt;
+<rss xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/" version="2.0"><channel><title>个人博客</title><link>/Blog-With-GitHub-Boilerplate/</link><description>每天进步一点点</description><docs>http://www.rssboard.org/rss-specification</docs><generator>python-feedgen</generator><image><url>/Blog-With-GitHub-Boilerplate/logo.png</url><title>个人博客</title><link>/Blog-With-GitHub-Boilerplate/</link></image><language>zh-CN</language><lastBuildDate>Mon, 01 May 2023 09:40:54 +0806</lastBuildDate><pubDate>Mon, 01 May 2023 09:40:54 +0806</pubDate><item><title>Hello World!</title><link>/Blog-With-GitHub-Boilerplate/archives/typography/</link><description>&lt;div class="notice"&gt;这是一篇示例文章，在这里你可以看到常用页面元素的显示效果，同时也是 Markdown 语法的参考文章。保留或者删除本文，开始自己的创作吧！&lt;/div&gt;&lt;h2&gt;L2 Heading&lt;/h2&gt;
 &lt;h3&gt;L3 Heading&lt;/h3&gt;
 &lt;h4&gt;L4 Heading&lt;/h4&gt;
 &lt;h5&gt;L5 Heading&lt;/h5&gt;
@@ -991,7 +991,7 @@ $&lt;span class="w"&gt; &lt;/span&gt;curl&lt;span class="w"&gt; &lt;/span&gt;htt
 &lt;/pre&gt;&lt;/div&gt;
 &lt;p&gt;见 &lt;strong&gt;结论二&lt;/strong&gt; 截图&lt;/p&gt;
 &lt;h2&gt;实验六：curl 增加速度控制&lt;/h2&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="c1"&gt;# client &amp;amp; server 保持默认值不动，限速设置小一点，感觉抓包分析更好一点，分别尝试了1k、100k、1M&lt;/span&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="c1"&gt;# client &amp;amp; server 保持默认值不动，限速设置小一点，抓包分析更好一点，分别尝试了1k、100k、1M&lt;/span&gt;
 curl&lt;span class="w"&gt; &lt;/span&gt;--limit-rate&lt;span class="w"&gt; &lt;/span&gt;1k&lt;span class="w"&gt; &lt;/span&gt;http://192.168.56.101:8089/iso.tar&lt;span class="w"&gt; &lt;/span&gt;--output&lt;span class="w"&gt; &lt;/span&gt;./result_04
 
 &lt;span class="c1"&gt;# Client&lt;/span&gt;
@@ -1032,9 +1032,9 @@ tcpdump&lt;span class="w"&gt; &lt;/span&gt;-i&lt;span class="w"&gt; &lt;/span&gt
 &lt;p&gt;&lt;figure style="flex: 81.1449159327462" &gt;&lt;img width="4054" height="2498" src="https://raw.githubusercontent.com/iYangcw/Photo/master/rmem_rtt.png" /&gt;&lt;figcaption&gt;rmem_rtt&lt;/figcaption&gt;&lt;/figure&gt;&lt;/p&gt;
 &lt;h2&gt;结论三：汇总：网速和 wmem rmem rtt 带宽 的关系&lt;/h2&gt;
 &lt;p&gt;减少 rtt 和 增大带宽 影响带宽就不说了。&lt;/p&gt;
-&lt;p&gt;client 的 recv buffer 太小 且 rtt 很大的情况下，网速会变慢&lt;/p&gt;
-&lt;p&gt;增加 server 的 send buffer （对应 wmem），相当于&lt;/p&gt;
-&lt;p&gt;增加 client 的 recv buffer （对应 rmem）&lt;/p&gt;
+&lt;p&gt;client 的 recv buffer 太小 且 rtt 很大的情况下，网速会变慢。&lt;/p&gt;
+&lt;p&gt;增加 server 的 send buffer （对应 wmem），相当于仓库发货比较强&lt;/p&gt;
+&lt;p&gt;增加 client 的 recv buffer （对应 rmem），相当于仓库收获比较强&lt;/p&gt;
 &lt;h1&gt;ss 计算 tcp buffer size&lt;/h1&gt;
 &lt;p&gt;&lt;a href="https://man7.org/linux/man-pages/man8/ss.8.html"&gt;man ss 链接&lt;/a&gt;&lt;/p&gt;
 &lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="c1"&gt;# 注意下，tb 表示 snd_buf，字母 t 可以理解为 Transmit&lt;/span&gt;
