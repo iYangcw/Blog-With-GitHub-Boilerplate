@@ -19,7 +19,7 @@
     <script>
         var ExSearchConfig = {
             root: "",
-            api: "/Blog-With-GitHub-Boilerplate/7d5754fb1c86483588f856f52a2ba602.json"
+            api: "/Blog-With-GitHub-Boilerplate/489f553f5340f9419e106ba4856ebd4b.json"
         }
     </script>
     
@@ -80,7 +80,8 @@
                 
             </span>
             <div class="ga-content_body">
-                <p><strong>服务器信息</strong></p>
+                <h1>基础环境</h1>
+<p><strong>服务器信息</strong></p>
 <p>Client：192.168.56.100</p>
 <p>Server：192.168.56.101</p>
 <p>OS：CentOS Linux release 7.9.2009 (Core) 3.10.0-1160.el7.x86_64</p>
@@ -152,6 +153,7 @@ server<span class="w"> </span>角度来说，连续小包（几千的样子）�
 client<span class="w"> </span>角度来看，包比较乱
 server<span class="w"> </span>角度来说，连续小包（几千的样子）汇总发送,包的大小会有<span class="w"> </span>重复递增的样子
 </pre></div>
+<h1>实验记录</h1>
 <h2>实验一：正常状态</h2>
 <div class="highlight"><pre><span></span><span class="c1"># Client</span>
 tcpdump<span class="w"> </span>-i<span class="w"> </span>enp0s8<span class="w"> </span>-n<span class="w"> </span>host<span class="w">  </span><span class="si">${</span><span class="nv">serverIP</span><span class="si">}</span><span class="w"> </span>-w<span class="w"> </span>client_01.pcap
@@ -298,6 +300,7 @@ tcpdump<span class="w"> </span>-i<span class="w"> </span>enp0s8<span class="w"> 
 </pre></div>
 <p>TCP Window Full 意味着窗口填满，可以看下这篇文章，说的很详细：<a href="https://www.golinuxcloud.com/wireshark-tcp-zero-window/">Analyse Slow Networks with TCP Zero Window</a></p>
 <p><figure style="flex: 106.85344827586206" ><img width="2479" height="1160" src="https://raw.githubusercontent.com/iYangcw/Photo/master/image-20230427171447952.png" /><figcaption>image-20230427171447952</figcaption></figure></p>
+<h1>结论</h1>
 <h2>结论一：改小 client rmem 和 server wmem 来对比对速度的影响</h2>
 <p><strong>实验三 和 实验四</strong>：平均下载速度为：17 KB/s 和 80 KB/s 的对比</p>
 <p>相比而言，server 改小了 wmen 速度还凑合，因为server 每次收到ack，立即释放 wmem 来发新的网络包 (内存级别的时延)；</p>
@@ -332,6 +335,21 @@ tcpdump<span class="w"> </span>-i<span class="w"> </span>enp0s8<span class="w"> 
 <p>增大带宽</p>
 <p>增加 server 的 send buffer （对应 wmem）</p>
 <p>增加 client 的 recv buffer （对应 rmem）</p>
+<h1>ss 计算 tcp buffer size</h1>
+<p><a href="https://man7.org/linux/man-pages/man8/ss.8.html">man ss 链接</a></p>
+<div class="highlight"><pre><span></span><span class="c1"># 注意下，tb 表示 snd_buf，字母 t 可以理解为 Transmit</span>
+<span class="w">       </span>-m,<span class="w"> </span>--memory
+<span class="w">              </span>Show<span class="w"> </span>socket<span class="w"> </span>memory<span class="w"> </span>usage.<span class="w"> </span>The<span class="w"> </span>output<span class="w"> </span>format<span class="w"> </span>is:
+
+<span class="w">              </span>skmem:<span class="o">(</span>r&lt;rmem_alloc&gt;,rb&lt;rcv_buf&gt;,t&lt;wmem_alloc&gt;,tb&lt;snd_buf&gt;,
+<span class="w">                            </span>f&lt;fwd_alloc&gt;,w&lt;wmem_queued&gt;,o&lt;opt_mem&gt;,
+<span class="w">                            </span>bl&lt;back_log&gt;,d&lt;sock_drop&gt;<span class="o">)</span>
+</pre></div>
+<h1>参考链接</h1>
+<p><a href="https://www.golinuxcloud.com/wireshark-tcp-zero-window/">Analyse Slow Networks with TCP Zero Window</a></p>
+<p><a href="https://plantegg.github.io/2019/09/28/%E5%B0%B1%E6%98%AF%E8%A6%81%E4%BD%A0%E6%87%82TCP--%E6%80%A7%E8%83%BD%E5%92%8C%E5%8F%91%E9%80%81%E6%8E%A5%E6%94%B6Buffer%E7%9A%84%E5%85%B3%E7%B3%BB/">TCP性能和发送接收窗口、Buffer的关系</a></p>
+<p><a href="https://blog.csdn.net/dog250/article/details/113020804">长肥管道(LFT)中TCP的艰难处境与打法</a></p>
+<p><a href="https://www.cisco.com/c/en/us/support/docs/ip/transmission-control-protocol-tcp/200943-Why-Your-Application-only-Uses-10Mbps-Ev.html">Why Your Application only Uses 10Mbps Even the Link is 1Gbps?</a></p>
 
             </div>
         </article>
