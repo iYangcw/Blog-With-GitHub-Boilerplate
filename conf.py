@@ -24,8 +24,8 @@ site_logo = "${static_prefix}logo.png"
 site_build_date = "2019-12-18T16:51+08:00"
 author = "Clover"
 email = "test@email.com"
-author_homepage = "https://www.imalan.cn"
-description = "只坚持一种正义。我的正义。"
+author_homepage = "https://iyangcw.github.io/Blog-With-GitHub-Boilerplate/"
+description = "每天进步一点点"
 key_words = ['Maverick', '熊猫小A', 'Galileo', 'blog']
 language = 'zh-CN'
 external_links = [
@@ -56,7 +56,7 @@ nav = [
 social_links = [
     {
         "name": "Twitter",
-        "url": "xxxx",
+        "url": "https://twitter.com/iCloverLL",
         "icon": "gi gi-twitter"
     }
 ]

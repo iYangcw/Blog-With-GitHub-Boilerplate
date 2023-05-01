@@ -1,7 +1,7 @@
 ---
 layout: post
 title: TCP 发送窗口、接收窗口、wmem、rmem 关系
-slug: TCP
+slug: TCP_Buffer
 date: 2023-05-01 14:00
 status: publish
 author: Sai
