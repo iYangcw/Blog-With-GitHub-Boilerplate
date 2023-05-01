@@ -12,7 +12,7 @@ tags:
 excerpt: TCP 发送窗口、接收窗口、wmem、rmem 关系
 ---
 
-
+# 基础环境
 
 **服务器信息**
 
@@ -107,6 +107,8 @@ server 角度来说，连续小包（几千的样子）汇总发送,包的大小
 ```
 
 
+
+# 实验记录
 
 ## 实验一：正常状态
 
@@ -317,7 +319,7 @@ TCP Window Full 意味着窗口填满，可以看下这篇文章，说的很详�
 
 
 
-
+# 结论
 
 ## 结论一：改小 client rmem 和 server wmem 来对比对速度的影响
 
@@ -388,4 +390,36 @@ BDP来设置最大接收窗口（可计算出最大读缓存）。BDP叫做带�
 增加 server 的 send buffer （对应 wmem）
 
 增加 client 的 recv buffer （对应 rmem）
+
+
+
+# ss 计算 tcp buffer size
+
+[man ss 链接](https://man7.org/linux/man-pages/man8/ss.8.html)
+
+```bash
+# 注意下，tb 表示 snd_buf，字母 t 可以理解为 Transmit
+       -m, --memory
+              Show socket memory usage. The output format is:
+
+              skmem:(r<rmem_alloc>,rb<rcv_buf>,t<wmem_alloc>,tb<snd_buf>,
+                            f<fwd_alloc>,w<wmem_queued>,o<opt_mem>,
+                            bl<back_log>,d<sock_drop>)
+```
+
+
+
+# 参考链接
+
+[Analyse Slow Networks with TCP Zero Window](https://www.golinuxcloud.com/wireshark-tcp-zero-window/)
+
+[TCP性能和发送接收窗口、Buffer的关系](https://plantegg.github.io/2019/09/28/%E5%B0%B1%E6%98%AF%E8%A6%81%E4%BD%A0%E6%87%82TCP--%E6%80%A7%E8%83%BD%E5%92%8C%E5%8F%91%E9%80%81%E6%8E%A5%E6%94%B6Buffer%E7%9A%84%E5%85%B3%E7%B3%BB/)
+
+[长肥管道(LFT)中TCP的艰难处境与打法](https://blog.csdn.net/dog250/article/details/113020804)
+
+[Why Your Application only Uses 10Mbps Even the Link is 1Gbps?](https://www.cisco.com/c/en/us/support/docs/ip/transmission-control-protocol-tcp/200943-Why-Your-Application-only-Uses-10Mbps-Ev.html)
+
+
+
+
 
