@@ -282,7 +282,7 @@ $ curl http://192.168.56.101:8089/iso.tar --output ./result_01
 ## 实验六：curl 增加速度控制
 
 ```bash
-# client & server 保持默认值不动，限速设置小一点，感觉抓包分析更好一点，分别尝试了1k、100k、1M
+# client & server 保持默认值不动，限速设置小一点，抓包分析更好一点，分别尝试了1k、100k、1M
 curl --limit-rate 1k http://192.168.56.101:8089/iso.tar --output ./result_04
 
 # Client
@@ -360,13 +360,11 @@ plantegg 任总的这张图反复看【**结论二的只需要看图片左边即
 
 减少 rtt 和 增大带宽 影响带宽就不说了。
 
-client 的 recv buffer 太小 且 rtt 很大的情况下，网速会变慢
+client 的 recv buffer 太小 且 rtt 很大的情况下，网速会变慢。
 
+增加 server 的 send buffer （对应 wmem），相当于仓库发货比较强
 
-
-增加 server 的 send buffer （对应 wmem），相当于
-
-增加 client 的 recv buffer （对应 rmem）
+增加 client 的 recv buffer （对应 rmem），相当于仓库收获比较强
 
 
 
