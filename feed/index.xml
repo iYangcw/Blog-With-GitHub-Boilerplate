@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='UTF-8'?>
-<rss xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/" version="2.0"><channel><title>个人博客</title><link>/Blog-With-GitHub-Boilerplate/</link><description>只坚持一种正义。我的正义。</description><docs>http://www.rssboard.org/rss-specification</docs><generator>python-feedgen</generator><image><url>/Blog-With-GitHub-Boilerplate/logo.png</url><title>个人博客</title><link>/Blog-With-GitHub-Boilerplate/</link></image><language>zh-CN</language><lastBuildDate>Tue, 28 Mar 2023 14:32:32 +0806</lastBuildDate><pubDate>Tue, 28 Mar 2023 14:32:32 +0806</pubDate><item><title>Hello World!</title><link>/Blog-With-GitHub-Boilerplate/archives/typography/</link><description>&lt;div class="notice"&gt;这是一篇示例文章，在这里你可以看到常用页面元素的显示效果，同时也是 Markdown 语法的参考文章。保留或者删除本文，开始自己的创作吧！&lt;/div&gt;&lt;h2&gt;L2 Heading&lt;/h2&gt;
+<rss xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/" version="2.0"><channel><title>个人博客</title><link>/Blog-With-GitHub-Boilerplate/</link><description>只坚持一种正义。我的正义。</description><docs>http://www.rssboard.org/rss-specification</docs><generator>python-feedgen</generator><image><url>/Blog-With-GitHub-Boilerplate/logo.png</url><title>个人博客</title><link>/Blog-With-GitHub-Boilerplate/</link></image><language>zh-CN</language><lastBuildDate>Mon, 01 May 2023 06:12:19 +0806</lastBuildDate><pubDate>Mon, 01 May 2023 06:12:19 +0806</pubDate><item><title>Hello World!</title><link>/Blog-With-GitHub-Boilerplate/archives/typography/</link><description>&lt;div class="notice"&gt;这是一篇示例文章，在这里你可以看到常用页面元素的显示效果，同时也是 Markdown 语法的参考文章。保留或者删除本文，开始自己的创作吧！&lt;/div&gt;&lt;h2&gt;L2 Heading&lt;/h2&gt;
 &lt;h3&gt;L3 Heading&lt;/h3&gt;
 &lt;h4&gt;L4 Heading&lt;/h4&gt;
 &lt;h5&gt;L5 Heading&lt;/h5&gt;
@@ -798,4 +798,256 @@ LISTEN&lt;span class="w"&gt;     &lt;/span&gt;&lt;span class="m"&gt;129&lt;/span
 &lt;ul&gt;
 &lt;li&gt;&lt;a href="https://blog.cloudflare.com/syn-packet-handling-in-the-wild/"&gt;https://blog.cloudflare.com/syn-packet-handling-in-the-wild/&lt;/a&gt;&lt;/li&gt;
 &lt;/ul&gt;
-</description><author>test@email.com (Sai)</author><guid isPermaLink="true">/Blog-With-GitHub-Boilerplate/archives/TCP/</guid><pubDate>Tue, 28 Mar 2023 14:50:00 +0806</pubDate></item></channel></rss>
+</description><author>test@email.com (Sai)</author><guid isPermaLink="true">/Blog-With-GitHub-Boilerplate/archives/TCP/</guid><pubDate>Tue, 28 Mar 2023 14:50:00 +0806</pubDate></item><item><title>TCP 发送窗口、接收窗口、wmem、rmem 关系</title><link>/Blog-With-GitHub-Boilerplate/archives/TCP/</link><description>&lt;p&gt;&lt;strong&gt;服务器信息&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;Client：192.168.56.100&lt;/p&gt;
+&lt;p&gt;Server：192.168.56.101&lt;/p&gt;
+&lt;p&gt;OS：CentOS Linux release 7.9.2009 (Core) 3.10.0-1160.el7.x86_64&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;大致思路&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;wmem 对应 &lt;code&gt;Send Buffer&lt;/code&gt;，从 TCP 的概念可以理解为 发送窗口，字母 &lt;code&gt;w&lt;/code&gt; 可以理解成 &lt;code&gt;write&lt;/code&gt;&lt;/p&gt;
+&lt;p&gt;rmem 对应 &lt;code&gt;Receive Buffer&lt;/code&gt;，从 TCP 的概念可以理解为 接收窗口&lt;/p&gt;
+&lt;p&gt;实验过程是模拟一个下载过程，也就是大致过程是 &lt;code&gt;server&lt;/code&gt; 发送文件，所以调整 &lt;code&gt;wmwm&lt;/code&gt;，&lt;code&gt;client&lt;/code&gt; 接收文件，所以调整 rmen&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;目的如下：&lt;/strong&gt;&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;写死 Linux参数让传输速度慢下来
+改接收端：sysctl -w "net.ipv4.tcp_rmem=4096  4096    4096"
+或者
+改发送端：sysctl -w "net.ipv4.tcp_wmem=4096  4096    4096" 
+
+继续调整rtt、丢包率，curl限制速度等，抓包分析看到的所有现象&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;&lt;strong&gt;系统默认参数如下&lt;/strong&gt;&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;$&lt;span class="w"&gt; &lt;/span&gt;sudo&lt;span class="w"&gt; &lt;/span&gt;sysctl&lt;span class="w"&gt; &lt;/span&gt;-a&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="p"&gt;|&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;egrep&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;rmem|wmem|tcp_mem|adv_win|moderate&amp;quot;&lt;/span&gt;
+net.core.rmem_default&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="m"&gt;212992&lt;/span&gt;
+net.core.rmem_max&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="m"&gt;212992&lt;/span&gt;
+net.core.wmem_default&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="m"&gt;212992&lt;/span&gt;
+net.core.wmem_max&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="m"&gt;212992&lt;/span&gt;
+net.ipv4.tcp_adv_win_scale&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="m"&gt;1&lt;/span&gt;
+net.ipv4.tcp_mem&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="m"&gt;42459&lt;/span&gt;&lt;span class="w"&gt;    &lt;/span&gt;&lt;span class="m"&gt;56612&lt;/span&gt;&lt;span class="w"&gt;   &lt;/span&gt;&lt;span class="m"&gt;84918&lt;/span&gt;
+net.ipv4.tcp_moderate_rcvbuf&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="m"&gt;1&lt;/span&gt;
+net.ipv4.tcp_rmem&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="m"&gt;4096&lt;/span&gt;&lt;span class="w"&gt;    &lt;/span&gt;&lt;span class="m"&gt;87380&lt;/span&gt;&lt;span class="w"&gt;   &lt;/span&gt;&lt;span class="m"&gt;6291456&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;//最小值&lt;span class="w"&gt;  &lt;/span&gt;默认值&lt;span class="w"&gt;  &lt;/span&gt;最大值
+net.ipv4.tcp_wmem&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="m"&gt;4096&lt;/span&gt;&lt;span class="w"&gt;    &lt;/span&gt;&lt;span class="m"&gt;16384&lt;/span&gt;&lt;span class="w"&gt;   &lt;/span&gt;&lt;span class="m"&gt;4194304&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;//最小值&lt;span class="w"&gt;  &lt;/span&gt;默认值&lt;span class="w"&gt;  &lt;/span&gt;最大值
+net.ipv4.udp_rmem_min&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="m"&gt;4096&lt;/span&gt;
+net.ipv4.udp_wmem_min&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="m"&gt;4096&lt;/span&gt;
+vm.lowmem_reserve_ratio&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="m"&gt;256&lt;/span&gt;&lt;span class="w"&gt;   &lt;/span&gt;&lt;span class="m"&gt;256&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="m"&gt;32&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;&lt;strong&gt;开始命令&lt;/strong&gt;&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="c1"&gt;# Client &amp;amp;&amp;amp; Server&lt;/span&gt;
+&lt;span class="nv"&gt;clientIP&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;192.168.56.100&amp;quot;&lt;/span&gt;
+&lt;span class="nv"&gt;serverIP&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;192.168.56.101&amp;quot;&lt;/span&gt;
+
+&lt;span class="c1"&gt;# Server&lt;/span&gt;
+&lt;span class="c1"&gt;# 启动命令的地方存在一个 2个多G 的文件&lt;/span&gt;
+python&lt;span class="w"&gt; &lt;/span&gt;-m&lt;span class="w"&gt; &lt;/span&gt;SimpleHTTPServer&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="m"&gt;8089&lt;/span&gt;
+
+&lt;span class="c1"&gt;## Client&lt;/span&gt;
+curl&lt;span class="w"&gt; &lt;/span&gt;http://192.168.56.101:8089/iso.tar&lt;span class="w"&gt; &lt;/span&gt;--output&lt;span class="w"&gt; &lt;/span&gt;./result
+
+&lt;span class="c1"&gt;# 测试宽带&lt;/span&gt;
+iperf3&lt;span class="w"&gt; &lt;/span&gt;-s
+iperf3&lt;span class="w"&gt; &lt;/span&gt;-c&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="si"&gt;${&lt;/span&gt;&lt;span class="nv"&gt;serverIP&lt;/span&gt;&lt;span class="si"&gt;}&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;-t&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="m"&gt;60&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;-i&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="m"&gt;1&lt;/span&gt;
+&lt;span class="c1"&gt;# 无额外设置情况下宽带结果&lt;/span&gt;
+大概是&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="m"&gt;2&lt;/span&gt;.69&lt;span class="w"&gt; &lt;/span&gt;Gbits/sec&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="m"&gt;2860&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;Mbps
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;&lt;strong&gt;实验结果信息汇总&lt;/strong&gt;&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;--正常&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="m"&gt;127&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;MB/s
+
+--延时&lt;span class="w"&gt; &lt;/span&gt;100ms，5.48&lt;span class="w"&gt; &lt;/span&gt;MB/s
+client&lt;span class="w"&gt; &lt;/span&gt;角度看的话，server发的包大小不稳定，60000-10000都有
+server&lt;span class="w"&gt; &lt;/span&gt;是以比较稳定的处理包，然后有100ms的延时
+
+--延时&lt;span class="w"&gt; &lt;/span&gt;100ms&lt;span class="w"&gt; &lt;/span&gt;且client&lt;span class="w"&gt; &lt;/span&gt;的&lt;span class="w"&gt; &lt;/span&gt;rmem&lt;span class="w"&gt; &lt;/span&gt;改成&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="m"&gt;4096&lt;/span&gt;，17&lt;span class="w"&gt; &lt;/span&gt;KB/s
+client&lt;span class="w"&gt; &lt;/span&gt;角度来看，包比较乱
+server&lt;span class="w"&gt; &lt;/span&gt;角度来说，连续小包（几千的样子）汇总发送,包的大小会有&lt;span class="w"&gt; &lt;/span&gt;重复递增的样子
+
+--延时&lt;span class="w"&gt; &lt;/span&gt;100ms&lt;span class="w"&gt; &lt;/span&gt;且server&lt;span class="w"&gt; &lt;/span&gt;的&lt;span class="w"&gt; &lt;/span&gt;wmem&lt;span class="w"&gt; &lt;/span&gt;改成&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="m"&gt;4096&lt;/span&gt;，80&lt;span class="w"&gt; &lt;/span&gt;KB/s
+client&lt;span class="w"&gt; &lt;/span&gt;角度来看，一个ACK，然后一个稳定的接收&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="m"&gt;8258&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;length&lt;span class="w"&gt; &lt;/span&gt;的包
+server&lt;span class="w"&gt; &lt;/span&gt;是以比较稳定的处理包，然后有100ms的延时
+
+--延时&lt;span class="w"&gt; &lt;/span&gt;10ms&lt;span class="w"&gt; &lt;/span&gt;且client&lt;span class="w"&gt; &lt;/span&gt;的&lt;span class="w"&gt; &lt;/span&gt;rmem&lt;span class="w"&gt; &lt;/span&gt;改成&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="m"&gt;4096&lt;/span&gt;，17&lt;span class="w"&gt; &lt;/span&gt;KB/s
+client&lt;span class="w"&gt; &lt;/span&gt;角度来看，包比较乱
+server&lt;span class="w"&gt; &lt;/span&gt;角度来说，连续小包（几千的样子）汇总发送,包的大小会有&lt;span class="w"&gt; &lt;/span&gt;重复递增的样子
+
+--延时&lt;span class="w"&gt; &lt;/span&gt;100ms&lt;span class="w"&gt; &lt;/span&gt;且server&lt;span class="w"&gt; &lt;/span&gt;的&lt;span class="w"&gt; &lt;/span&gt;rmem&lt;span class="w"&gt; &lt;/span&gt;改成&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="m"&gt;4096&lt;/span&gt;，4.87&lt;span class="w"&gt; &lt;/span&gt;MB/s&lt;span class="o"&gt;[&lt;/span&gt;只是记录用&lt;span class="o"&gt;]&lt;/span&gt;
+client&lt;span class="w"&gt; &lt;/span&gt;角度来看，包比较乱
+server&lt;span class="w"&gt; &lt;/span&gt;角度来说，连续小包（几千的样子）汇总发送,包的大小会有&lt;span class="w"&gt; &lt;/span&gt;重复递增的样子
+&lt;/pre&gt;&lt;/div&gt;
+&lt;h2&gt;实验一：正常状态&lt;/h2&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="c1"&gt;# Client&lt;/span&gt;
+tcpdump&lt;span class="w"&gt; &lt;/span&gt;-i&lt;span class="w"&gt; &lt;/span&gt;enp0s8&lt;span class="w"&gt; &lt;/span&gt;-n&lt;span class="w"&gt; &lt;/span&gt;host&lt;span class="w"&gt;  &lt;/span&gt;&lt;span class="si"&gt;${&lt;/span&gt;&lt;span class="nv"&gt;serverIP&lt;/span&gt;&lt;span class="si"&gt;}&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;-w&lt;span class="w"&gt; &lt;/span&gt;client_01.pcap
+&lt;span class="c1"&gt;# Server&lt;/span&gt;
+tcpdump&lt;span class="w"&gt; &lt;/span&gt;-i&lt;span class="w"&gt; &lt;/span&gt;enp0s8&lt;span class="w"&gt; &lt;/span&gt;-n&lt;span class="w"&gt; &lt;/span&gt;host&lt;span class="w"&gt;  &lt;/span&gt;&lt;span class="si"&gt;${&lt;/span&gt;&lt;span class="nv"&gt;clientIP&lt;/span&gt;&lt;span class="si"&gt;}&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;-w&lt;span class="w"&gt; &lt;/span&gt;server_01.pcap
+
+&lt;span class="c1"&gt;# 下载结果 大概平均下载速度是 127 MB/s&lt;/span&gt;
+$&lt;span class="w"&gt; &lt;/span&gt;curl&lt;span class="w"&gt; &lt;/span&gt;http://192.168.56.101:8089/iso.tar&lt;span class="w"&gt; &lt;/span&gt;--output&lt;span class="w"&gt; &lt;/span&gt;./result_01
+&lt;span class="w"&gt;  &lt;/span&gt;%&lt;span class="w"&gt; &lt;/span&gt;Total&lt;span class="w"&gt;    &lt;/span&gt;%&lt;span class="w"&gt; &lt;/span&gt;Received&lt;span class="w"&gt; &lt;/span&gt;%&lt;span class="w"&gt; &lt;/span&gt;Xferd&lt;span class="w"&gt;  &lt;/span&gt;Average&lt;span class="w"&gt; &lt;/span&gt;Speed&lt;span class="w"&gt;   &lt;/span&gt;Time&lt;span class="w"&gt;    &lt;/span&gt;Time&lt;span class="w"&gt;     &lt;/span&gt;Time&lt;span class="w"&gt;  &lt;/span&gt;Current
+&lt;span class="w"&gt;                                 &lt;/span&gt;Dload&lt;span class="w"&gt;  &lt;/span&gt;Upload&lt;span class="w"&gt;   &lt;/span&gt;Total&lt;span class="w"&gt;   &lt;/span&gt;Spent&lt;span class="w"&gt;    &lt;/span&gt;Left&lt;span class="w"&gt;  &lt;/span&gt;Speed
+&lt;span class="m"&gt;100&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;2539M&lt;span class="w"&gt;  &lt;/span&gt;&lt;span class="m"&gt;100&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;2539M&lt;span class="w"&gt;    &lt;/span&gt;&lt;span class="m"&gt;0&lt;/span&gt;&lt;span class="w"&gt;     &lt;/span&gt;&lt;span class="m"&gt;0&lt;/span&gt;&lt;span class="w"&gt;   &lt;/span&gt;127M&lt;span class="w"&gt;      &lt;/span&gt;&lt;span class="m"&gt;0&lt;/span&gt;&lt;span class="w"&gt;  &lt;/span&gt;&lt;span class="m"&gt;0&lt;/span&gt;:00:19&lt;span class="w"&gt;  &lt;/span&gt;&lt;span class="m"&gt;0&lt;/span&gt;:00:19&lt;span class="w"&gt; &lt;/span&gt;--:--:--&lt;span class="w"&gt;  &lt;/span&gt;130M
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;可以看到截图里，时间都是以 0.000X 秒递增的&lt;/p&gt;
+&lt;p&gt;client_01 截图&lt;/p&gt;
+&lt;p&gt;&lt;figure style="flex: 250.23809523809524" &gt;&lt;img width="2102" height="420" src="https://raw.githubusercontent.com/iYangcw/Photo/master/client_01.png" /&gt;&lt;/figure&gt;&lt;/p&gt;
+&lt;p&gt;server_01 截图&lt;/p&gt;
+&lt;p&gt;&lt;figure style="flex: 251.8028846153846" &gt;&lt;img width="2095" height="416" src="https://raw.githubusercontent.com/iYangcw/Photo/master/server_01.png" /&gt;&lt;/figure&gt;&lt;/p&gt;
+&lt;h3&gt;TCP  Windows  Scale&lt;/h3&gt;
+&lt;p&gt;Window Scale 选项只能与 TCP SYN、SYN/ACK 一起使用。TCP 早期的时候带宽很小，所以最大接收窗口被定义成 65535 字节（ TCP Header 的 Windows 最大为 16 bit ）&lt;/p&gt;
+&lt;p&gt;由于不够用，所以通过 TCP options 定义了 Windows  Scale，其声明了一个 Shift count，作为2的指数，再乘以 TCP 头中定义的接收窗口，就得到真正的 TCP 接收窗口了。&lt;/p&gt;
+&lt;p&gt;下图为 SYN/ACK 中可以看到 Windows  Scale 为 7&lt;/p&gt;
+&lt;p&gt;&lt;figure style="flex: 81.04651162790698" &gt;&lt;img width="1394" height="860" src="https://raw.githubusercontent.com/iYangcw/Photo/master/image-20230420161433041.png" /&gt;&lt;figcaption&gt;image-20230420161433041&lt;/figcaption&gt;&lt;/figure&gt;&lt;/p&gt;
+&lt;p&gt;下图为真实的 Windows size：29312 = 229 * 128&lt;/p&gt;
+&lt;p&gt;&lt;figure style="flex: 93.61147327249022" &gt;&lt;img width="1436" height="767" src="https://raw.githubusercontent.com/iYangcw/Photo/master/image-20230420161615849.png" /&gt;&lt;figcaption&gt;image-20230420161615849&lt;/figcaption&gt;&lt;/figure&gt;&lt;/p&gt;
+&lt;h3&gt;Window size&lt;/h3&gt;
+&lt;p&gt;TCP 层的 Windows size （或者如上述截图的 Windows 、Calculated windows size），是在向对方声明自己的&lt;strong&gt;接收窗口&lt;/strong&gt;，而不是发送窗口&lt;/p&gt;
+&lt;p&gt;发送窗口决定了一口气能发多少字节，而 MSS 决定了这些字节要分多少个包发完。至于为什么 MSS=1460 的情况下，但是抓包的结果仍然有大于他的，这就是另外一个故事了，关键字：TCP Segment Offload&lt;/p&gt;
+&lt;h2&gt;实验二：server 增加 100ms 延时&lt;/h2&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="c1"&gt;# Server&lt;/span&gt;
+tc&lt;span class="w"&gt; &lt;/span&gt;qdisc&lt;span class="w"&gt; &lt;/span&gt;show&lt;span class="w"&gt; &lt;/span&gt;dev&lt;span class="w"&gt; &lt;/span&gt;enp0s8
+tc&lt;span class="w"&gt; &lt;/span&gt;qdisc&lt;span class="w"&gt; &lt;/span&gt;del&lt;span class="w"&gt; &lt;/span&gt;dev&lt;span class="w"&gt; &lt;/span&gt;enp0s8&lt;span class="w"&gt; &lt;/span&gt;root
+tc&lt;span class="w"&gt; &lt;/span&gt;qdisc&lt;span class="w"&gt; &lt;/span&gt;add&lt;span class="w"&gt; &lt;/span&gt;dev&lt;span class="w"&gt; &lt;/span&gt;enp0s8&lt;span class="w"&gt; &lt;/span&gt;root&lt;span class="w"&gt; &lt;/span&gt;netem&lt;span class="w"&gt; &lt;/span&gt;delay&lt;span class="w"&gt; &lt;/span&gt;100ms
+&lt;span class="c1"&gt;# Client&lt;/span&gt;
+tcpdump&lt;span class="w"&gt; &lt;/span&gt;-i&lt;span class="w"&gt; &lt;/span&gt;enp0s8&lt;span class="w"&gt; &lt;/span&gt;-n&lt;span class="w"&gt; &lt;/span&gt;host&lt;span class="w"&gt;  &lt;/span&gt;&lt;span class="si"&gt;${&lt;/span&gt;&lt;span class="nv"&gt;serverIP&lt;/span&gt;&lt;span class="si"&gt;}&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;-w&lt;span class="w"&gt; &lt;/span&gt;client_delay_100ms.pcap
+&lt;span class="c1"&gt;# Server&lt;/span&gt;
+tcpdump&lt;span class="w"&gt; &lt;/span&gt;-i&lt;span class="w"&gt; &lt;/span&gt;enp0s8&lt;span class="w"&gt; &lt;/span&gt;-n&lt;span class="w"&gt; &lt;/span&gt;host&lt;span class="w"&gt;  &lt;/span&gt;&lt;span class="si"&gt;${&lt;/span&gt;&lt;span class="nv"&gt;clientIP&lt;/span&gt;&lt;span class="si"&gt;}&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;-w&lt;span class="w"&gt; &lt;/span&gt;server_delay_100ms.pcap
+
+&lt;span class="c1"&gt;# 结果，大概平均下载速度是 5.48 MB/s&lt;/span&gt;
+$&lt;span class="w"&gt; &lt;/span&gt;curl&lt;span class="w"&gt; &lt;/span&gt;http://192.168.56.101:8089/iso.tar&lt;span class="w"&gt; &lt;/span&gt;--output&lt;span class="w"&gt; &lt;/span&gt;./result
+&lt;span class="w"&gt;  &lt;/span&gt;%&lt;span class="w"&gt; &lt;/span&gt;Total&lt;span class="w"&gt;    &lt;/span&gt;%&lt;span class="w"&gt; &lt;/span&gt;Received&lt;span class="w"&gt; &lt;/span&gt;%&lt;span class="w"&gt; &lt;/span&gt;Xferd&lt;span class="w"&gt;  &lt;/span&gt;Average&lt;span class="w"&gt; &lt;/span&gt;Speed&lt;span class="w"&gt;   &lt;/span&gt;Time&lt;span class="w"&gt;    &lt;/span&gt;Time&lt;span class="w"&gt;     &lt;/span&gt;Time&lt;span class="w"&gt;  &lt;/span&gt;Current
+&lt;span class="w"&gt;                                 &lt;/span&gt;Dload&lt;span class="w"&gt;  &lt;/span&gt;Upload&lt;span class="w"&gt;   &lt;/span&gt;Total&lt;span class="w"&gt;   &lt;/span&gt;Spent&lt;span class="w"&gt;    &lt;/span&gt;Left&lt;span class="w"&gt;  &lt;/span&gt;Speed
+&lt;span class="m"&gt;100&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;2539M&lt;span class="w"&gt;  &lt;/span&gt;&lt;span class="m"&gt;100&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;2539M&lt;span class="w"&gt;    &lt;/span&gt;&lt;span class="m"&gt;0&lt;/span&gt;&lt;span class="w"&gt;     &lt;/span&gt;&lt;span class="m"&gt;0&lt;/span&gt;&lt;span class="w"&gt;  &lt;/span&gt;5619k&lt;span class="w"&gt;      &lt;/span&gt;&lt;span class="m"&gt;0&lt;/span&gt;&lt;span class="w"&gt;  &lt;/span&gt;&lt;span class="m"&gt;0&lt;/span&gt;:07:42&lt;span class="w"&gt;  &lt;/span&gt;&lt;span class="m"&gt;0&lt;/span&gt;:07:42&lt;span class="w"&gt; &lt;/span&gt;--:--:--&lt;span class="w"&gt; &lt;/span&gt;4563k
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;server 抓包详情&lt;/p&gt;
+&lt;p&gt;&lt;figure style="flex: 205.63991323210413" &gt;&lt;img width="1896" height="461" src="https://raw.githubusercontent.com/iYangcw/Photo/master/image-20230423133802553.png" /&gt;&lt;figcaption&gt;image-20230423133802553&lt;/figcaption&gt;&lt;/figure&gt;&lt;/p&gt;
+&lt;p&gt;Wireshark 菜单路径：Statistics &amp;gt;&amp;gt; TCP Stream Graphs &amp;gt;&amp;gt; Time Sequence （Stevens）&lt;/p&gt;
+&lt;p&gt;&lt;figure style="flex: 132.61851015801355" &gt;&lt;img width="2350" height="886" src="https://raw.githubusercontent.com/iYangcw/Photo/master/server_dely_100ms.png" /&gt;&lt;/figure&gt;&lt;/p&gt;
+&lt;h2&gt;实验三：server 增加 100ms 延时，client 修改 rmem&lt;/h2&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="c1"&gt;# 两边原始值&lt;/span&gt;
+sysctl&lt;span class="w"&gt; &lt;/span&gt;-w&lt;span class="w"&gt; &lt;/span&gt;net.ipv4.tcp_wmem&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;4096 16384 4194304&amp;quot;&lt;/span&gt;
+sysctl&lt;span class="w"&gt; &lt;/span&gt;-w&lt;span class="w"&gt; &lt;/span&gt;net.ipv4.tcp_rmem&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;4096 87380 6291456&amp;quot;&lt;/span&gt;
+&lt;span class="c1"&gt;# server&lt;/span&gt;
+tc&lt;span class="w"&gt; &lt;/span&gt;qdisc&lt;span class="w"&gt; &lt;/span&gt;show&lt;span class="w"&gt; &lt;/span&gt;dev&lt;span class="w"&gt; &lt;/span&gt;enp0s8
+tc&lt;span class="w"&gt; &lt;/span&gt;qdisc&lt;span class="w"&gt; &lt;/span&gt;del&lt;span class="w"&gt; &lt;/span&gt;dev&lt;span class="w"&gt; &lt;/span&gt;enp0s8&lt;span class="w"&gt; &lt;/span&gt;root
+tc&lt;span class="w"&gt; &lt;/span&gt;qdisc&lt;span class="w"&gt; &lt;/span&gt;add&lt;span class="w"&gt; &lt;/span&gt;dev&lt;span class="w"&gt; &lt;/span&gt;enp0s8&lt;span class="w"&gt; &lt;/span&gt;root&lt;span class="w"&gt; &lt;/span&gt;netem&lt;span class="w"&gt; &lt;/span&gt;delay&lt;span class="w"&gt; &lt;/span&gt;100ms
+&lt;span class="c1"&gt;# client&lt;/span&gt;
+sysctl&lt;span class="w"&gt; &lt;/span&gt;-w&lt;span class="w"&gt; &lt;/span&gt;net.ipv4.tcp_rmem&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;4096 4096 4096&amp;quot;&lt;/span&gt;
+
+&lt;span class="c1"&gt;# Client&lt;/span&gt;
+tcpdump&lt;span class="w"&gt; &lt;/span&gt;-i&lt;span class="w"&gt; &lt;/span&gt;enp0s8&lt;span class="w"&gt; &lt;/span&gt;-n&lt;span class="w"&gt; &lt;/span&gt;host&lt;span class="w"&gt;  &lt;/span&gt;&lt;span class="si"&gt;${&lt;/span&gt;&lt;span class="nv"&gt;serverIP&lt;/span&gt;&lt;span class="si"&gt;}&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;-w&lt;span class="w"&gt; &lt;/span&gt;client_delayServer_100ms_rmem_Client_4096.pcap
+&lt;span class="c1"&gt;# Server&lt;/span&gt;
+tcpdump&lt;span class="w"&gt; &lt;/span&gt;-i&lt;span class="w"&gt; &lt;/span&gt;enp0s8&lt;span class="w"&gt; &lt;/span&gt;-n&lt;span class="w"&gt; &lt;/span&gt;host&lt;span class="w"&gt;  &lt;/span&gt;&lt;span class="si"&gt;${&lt;/span&gt;&lt;span class="nv"&gt;clientIP&lt;/span&gt;&lt;span class="si"&gt;}&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;-w&lt;span class="w"&gt; &lt;/span&gt;server_delayServer_100ms_rmem_Client_4096.pcap
+
+&lt;span class="c1"&gt;# 结果, 大概平均下载速度是 17 KB/s&lt;/span&gt;
+$&lt;span class="w"&gt; &lt;/span&gt;curl&lt;span class="w"&gt; &lt;/span&gt;http://192.168.56.101:8089/iso.tar&lt;span class="w"&gt; &lt;/span&gt;--output&lt;span class="w"&gt; &lt;/span&gt;./result_01
+&lt;span class="w"&gt;  &lt;/span&gt;%&lt;span class="w"&gt; &lt;/span&gt;Total&lt;span class="w"&gt;    &lt;/span&gt;%&lt;span class="w"&gt; &lt;/span&gt;Received&lt;span class="w"&gt; &lt;/span&gt;%&lt;span class="w"&gt; &lt;/span&gt;Xferd&lt;span class="w"&gt;  &lt;/span&gt;Average&lt;span class="w"&gt; &lt;/span&gt;Speed&lt;span class="w"&gt;   &lt;/span&gt;Time&lt;span class="w"&gt;    &lt;/span&gt;Time&lt;span class="w"&gt;     &lt;/span&gt;Time&lt;span class="w"&gt;  &lt;/span&gt;Current
+&lt;span class="w"&gt;                                 &lt;/span&gt;Dload&lt;span class="w"&gt;  &lt;/span&gt;Upload&lt;span class="w"&gt;   &lt;/span&gt;Total&lt;span class="w"&gt;   &lt;/span&gt;Spent&lt;span class="w"&gt;    &lt;/span&gt;Left&lt;span class="w"&gt;  &lt;/span&gt;Speed
+&lt;span class="w"&gt;  &lt;/span&gt;&lt;span class="m"&gt;0&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;2539M&lt;span class="w"&gt;    &lt;/span&gt;&lt;span class="m"&gt;0&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;1399k&lt;span class="w"&gt;    &lt;/span&gt;&lt;span class="m"&gt;0&lt;/span&gt;&lt;span class="w"&gt;     &lt;/span&gt;&lt;span class="m"&gt;0&lt;/span&gt;&lt;span class="w"&gt;  &lt;/span&gt;&lt;span class="m"&gt;14436&lt;/span&gt;&lt;span class="w"&gt;      &lt;/span&gt;&lt;span class="m"&gt;0&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="m"&gt;51&lt;/span&gt;:14:22&lt;span class="w"&gt;  &lt;/span&gt;&lt;span class="m"&gt;0&lt;/span&gt;:01:39&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="m"&gt;51&lt;/span&gt;:12:43&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="m"&gt;14458&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+&lt;h2&gt;实验四：server 增加 100ms 延时，server 修改wmem&lt;/h2&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="c1"&gt;# 两边原始值&lt;/span&gt;
+sysctl&lt;span class="w"&gt; &lt;/span&gt;-w&lt;span class="w"&gt; &lt;/span&gt;net.ipv4.tcp_wmem&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;4096 16384 4194304&amp;quot;&lt;/span&gt;
+sysctl&lt;span class="w"&gt; &lt;/span&gt;-w&lt;span class="w"&gt; &lt;/span&gt;net.ipv4.tcp_rmem&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;4096 87380 6291456&amp;quot;&lt;/span&gt;
+&lt;span class="c1"&gt;# Server&lt;/span&gt;
+tc&lt;span class="w"&gt; &lt;/span&gt;qdisc&lt;span class="w"&gt; &lt;/span&gt;show&lt;span class="w"&gt; &lt;/span&gt;dev&lt;span class="w"&gt; &lt;/span&gt;enp0s8
+tc&lt;span class="w"&gt; &lt;/span&gt;qdisc&lt;span class="w"&gt; &lt;/span&gt;del&lt;span class="w"&gt; &lt;/span&gt;dev&lt;span class="w"&gt; &lt;/span&gt;enp0s8&lt;span class="w"&gt; &lt;/span&gt;root
+tc&lt;span class="w"&gt; &lt;/span&gt;qdisc&lt;span class="w"&gt; &lt;/span&gt;add&lt;span class="w"&gt; &lt;/span&gt;dev&lt;span class="w"&gt; &lt;/span&gt;enp0s8&lt;span class="w"&gt; &lt;/span&gt;root&lt;span class="w"&gt; &lt;/span&gt;netem&lt;span class="w"&gt; &lt;/span&gt;delay&lt;span class="w"&gt; &lt;/span&gt;100ms
+sysctl&lt;span class="w"&gt; &lt;/span&gt;-w&lt;span class="w"&gt; &lt;/span&gt;net.ipv4.tcp_wmem&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;4096 4096 4096&amp;quot;&lt;/span&gt;
+&lt;span class="c1"&gt;# Client&lt;/span&gt;
+tcpdump&lt;span class="w"&gt; &lt;/span&gt;-i&lt;span class="w"&gt; &lt;/span&gt;enp0s8&lt;span class="w"&gt; &lt;/span&gt;-n&lt;span class="w"&gt; &lt;/span&gt;host&lt;span class="w"&gt;  &lt;/span&gt;&lt;span class="si"&gt;${&lt;/span&gt;&lt;span class="nv"&gt;serverIP&lt;/span&gt;&lt;span class="si"&gt;}&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;-w&lt;span class="w"&gt; &lt;/span&gt;client_delayServer_100ms_wmem_Server_4096.pcap
+&lt;span class="c1"&gt;# Server&lt;/span&gt;
+tcpdump&lt;span class="w"&gt; &lt;/span&gt;-i&lt;span class="w"&gt; &lt;/span&gt;enp0s8&lt;span class="w"&gt; &lt;/span&gt;-n&lt;span class="w"&gt; &lt;/span&gt;host&lt;span class="w"&gt;  &lt;/span&gt;&lt;span class="si"&gt;${&lt;/span&gt;&lt;span class="nv"&gt;clientIP&lt;/span&gt;&lt;span class="si"&gt;}&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;-w&lt;span class="w"&gt; &lt;/span&gt;server_delayServer_100ms_wmem_Server_4096.pcap
+
+&lt;span class="c1"&gt;# 结果, 大概平均下载速度是 80 KB/s&lt;/span&gt;
+$&lt;span class="w"&gt; &lt;/span&gt;curl&lt;span class="w"&gt; &lt;/span&gt;http://192.168.56.101:8089/iso.tar&lt;span class="w"&gt; &lt;/span&gt;--output&lt;span class="w"&gt; &lt;/span&gt;./result_03
+&lt;span class="w"&gt;  &lt;/span&gt;%&lt;span class="w"&gt; &lt;/span&gt;Total&lt;span class="w"&gt;    &lt;/span&gt;%&lt;span class="w"&gt; &lt;/span&gt;Received&lt;span class="w"&gt; &lt;/span&gt;%&lt;span class="w"&gt; &lt;/span&gt;Xferd&lt;span class="w"&gt;  &lt;/span&gt;Average&lt;span class="w"&gt; &lt;/span&gt;Speed&lt;span class="w"&gt;   &lt;/span&gt;Time&lt;span class="w"&gt;    &lt;/span&gt;Time&lt;span class="w"&gt;     &lt;/span&gt;Time&lt;span class="w"&gt;  &lt;/span&gt;Current
+&lt;span class="w"&gt;                                 &lt;/span&gt;Dload&lt;span class="w"&gt;  &lt;/span&gt;Upload&lt;span class="w"&gt;   &lt;/span&gt;Total&lt;span class="w"&gt;   &lt;/span&gt;Spent&lt;span class="w"&gt;    &lt;/span&gt;Left&lt;span class="w"&gt;  &lt;/span&gt;Speed
+&lt;span class="w"&gt;  &lt;/span&gt;&lt;span class="m"&gt;0&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;2539M&lt;span class="w"&gt;    &lt;/span&gt;&lt;span class="m"&gt;0&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="m"&gt;13&lt;/span&gt;.3M&lt;span class="w"&gt;    &lt;/span&gt;&lt;span class="m"&gt;0&lt;/span&gt;&lt;span class="w"&gt;     &lt;/span&gt;&lt;span class="m"&gt;0&lt;/span&gt;&lt;span class="w"&gt;  &lt;/span&gt;&lt;span class="m"&gt;81082&lt;/span&gt;&lt;span class="w"&gt;      &lt;/span&gt;&lt;span class="m"&gt;0&lt;/span&gt;&lt;span class="w"&gt;  &lt;/span&gt;&lt;span class="m"&gt;9&lt;/span&gt;:07:22&lt;span class="w"&gt;  &lt;/span&gt;&lt;span class="m"&gt;0&lt;/span&gt;:02:52&lt;span class="w"&gt;  &lt;/span&gt;&lt;span class="m"&gt;9&lt;/span&gt;:04:30&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="m"&gt;81157&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;&lt;figure style="flex: 219.01960784313727" &gt;&lt;img width="2234" height="510" src="https://raw.githubusercontent.com/iYangcw/Photo/master/image-20230426200129823.png" /&gt;&lt;figcaption&gt;image-20230426200129823&lt;/figcaption&gt;&lt;/figure&gt;&lt;/p&gt;
+&lt;p&gt;Window Scaling 截图，绿线后面稳定的时候，值是 182272，和抓包截图里 Client 的 win=182272 也对应的上，win 是 client 向对方声明自己的接收窗口。从下载网速来看也就是虽然 client 声明了自己的接收窗口很大，但是 server 端的 wmem 比较小，所以网速也不快。&lt;/p&gt;
+&lt;p&gt;&lt;figure style="flex: 79.36241610738254" &gt;&lt;img width="1892" height="1192" src="https://raw.githubusercontent.com/iYangcw/Photo/master/image-20230426193723153.png" /&gt;&lt;figcaption&gt;image-20230426193723153&lt;/figcaption&gt;&lt;/figure&gt;&lt;/p&gt;
+&lt;p&gt;一个笔直的蓝色线 对应的从 No 180-182，对应的大小为：2896、5792、8192，抓包见下面截图，和抓包详情截图的 Len 字段也对得上。&lt;/p&gt;
+&lt;p&gt;wireshark 的 Length 列 减去 66 ，就等于包详情里的 Len，至于为什么是 66 不太清楚，但是可以从 ACK 响应是 66 辅助确认。&lt;/p&gt;
+&lt;p&gt;&lt;figure style="flex: 69.82758620689656" &gt;&lt;img width="1701" height="1218" src="https://raw.githubusercontent.com/iYangcw/Photo/master/image-20230426195023142.png" /&gt;&lt;figcaption&gt;image-20230426195023142&lt;/figcaption&gt;&lt;/figure&gt;&lt;/p&gt;
+&lt;h2&gt;实验五：server 增加 10ms 延时，client 修改 rmem&lt;/h2&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="c1"&gt;# 两边原始值&lt;/span&gt;
+sysctl&lt;span class="w"&gt; &lt;/span&gt;-w&lt;span class="w"&gt; &lt;/span&gt;net.ipv4.tcp_wmem&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;4096 16384 4194304&amp;quot;&lt;/span&gt;
+sysctl&lt;span class="w"&gt; &lt;/span&gt;-w&lt;span class="w"&gt; &lt;/span&gt;net.ipv4.tcp_rmem&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;4096 87380 6291456&amp;quot;&lt;/span&gt;
+&lt;span class="c1"&gt;# Server&lt;/span&gt;
+tc&lt;span class="w"&gt; &lt;/span&gt;qdisc&lt;span class="w"&gt; &lt;/span&gt;show&lt;span class="w"&gt; &lt;/span&gt;dev&lt;span class="w"&gt; &lt;/span&gt;enp0s8
+tc&lt;span class="w"&gt; &lt;/span&gt;qdisc&lt;span class="w"&gt; &lt;/span&gt;del&lt;span class="w"&gt; &lt;/span&gt;dev&lt;span class="w"&gt; &lt;/span&gt;enp0s8&lt;span class="w"&gt; &lt;/span&gt;root
+tc&lt;span class="w"&gt; &lt;/span&gt;qdisc&lt;span class="w"&gt; &lt;/span&gt;add&lt;span class="w"&gt; &lt;/span&gt;dev&lt;span class="w"&gt; &lt;/span&gt;enp0s8&lt;span class="w"&gt; &lt;/span&gt;root&lt;span class="w"&gt; &lt;/span&gt;netem&lt;span class="w"&gt; &lt;/span&gt;delay&lt;span class="w"&gt; &lt;/span&gt;10ms
+&lt;span class="c1"&gt;# client&lt;/span&gt;
+sysctl&lt;span class="w"&gt; &lt;/span&gt;-w&lt;span class="w"&gt; &lt;/span&gt;net.ipv4.tcp_rmem&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;4096 4096 4096&amp;quot;&lt;/span&gt;
+
+&lt;span class="c1"&gt;# Client&lt;/span&gt;
+tcpdump&lt;span class="w"&gt; &lt;/span&gt;-i&lt;span class="w"&gt; &lt;/span&gt;enp0s8&lt;span class="w"&gt; &lt;/span&gt;-n&lt;span class="w"&gt; &lt;/span&gt;host&lt;span class="w"&gt;  &lt;/span&gt;&lt;span class="si"&gt;${&lt;/span&gt;&lt;span class="nv"&gt;serverIP&lt;/span&gt;&lt;span class="si"&gt;}&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;-w&lt;span class="w"&gt; &lt;/span&gt;client_delayServer_10ms_rmem_Client_4096.pcap
+&lt;span class="c1"&gt;# Server&lt;/span&gt;
+tcpdump&lt;span class="w"&gt; &lt;/span&gt;-i&lt;span class="w"&gt; &lt;/span&gt;enp0s8&lt;span class="w"&gt; &lt;/span&gt;-n&lt;span class="w"&gt; &lt;/span&gt;host&lt;span class="w"&gt;  &lt;/span&gt;&lt;span class="si"&gt;${&lt;/span&gt;&lt;span class="nv"&gt;clientIP&lt;/span&gt;&lt;span class="si"&gt;}&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;-w&lt;span class="w"&gt; &lt;/span&gt;server_delayServer_10ms_rmem_Client_4096.pcap
+
+&lt;span class="c1"&gt;# 结果, 大概平均下载速度是 123 KB/s&lt;/span&gt;
+$&lt;span class="w"&gt; &lt;/span&gt;curl&lt;span class="w"&gt; &lt;/span&gt;http://192.168.56.101:8089/iso.tar&lt;span class="w"&gt; &lt;/span&gt;--output&lt;span class="w"&gt; &lt;/span&gt;./result_01
+&lt;span class="w"&gt;  &lt;/span&gt;%&lt;span class="w"&gt; &lt;/span&gt;Total&lt;span class="w"&gt;    &lt;/span&gt;%&lt;span class="w"&gt; &lt;/span&gt;Received&lt;span class="w"&gt; &lt;/span&gt;%&lt;span class="w"&gt; &lt;/span&gt;Xferd&lt;span class="w"&gt;  &lt;/span&gt;Average&lt;span class="w"&gt; &lt;/span&gt;Speed&lt;span class="w"&gt;   &lt;/span&gt;Time&lt;span class="w"&gt;    &lt;/span&gt;Time&lt;span class="w"&gt;     &lt;/span&gt;Time&lt;span class="w"&gt;  &lt;/span&gt;Current
+&lt;span class="w"&gt;                                 &lt;/span&gt;Dload&lt;span class="w"&gt;  &lt;/span&gt;Upload&lt;span class="w"&gt;   &lt;/span&gt;Total&lt;span class="w"&gt;   &lt;/span&gt;Spent&lt;span class="w"&gt;    &lt;/span&gt;Left&lt;span class="w"&gt;  &lt;/span&gt;Speed
+&lt;span class="w"&gt;  &lt;/span&gt;&lt;span class="m"&gt;0&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;2539M&lt;span class="w"&gt;    &lt;/span&gt;&lt;span class="m"&gt;0&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="m"&gt;20&lt;/span&gt;.6M&lt;span class="w"&gt;    &lt;/span&gt;&lt;span class="m"&gt;0&lt;/span&gt;&lt;span class="w"&gt;     &lt;/span&gt;&lt;span class="m"&gt;0&lt;/span&gt;&lt;span class="w"&gt;   &lt;/span&gt;123k&lt;span class="w"&gt;      &lt;/span&gt;&lt;span class="m"&gt;0&lt;/span&gt;&lt;span class="w"&gt;  &lt;/span&gt;&lt;span class="m"&gt;5&lt;/span&gt;:50:08&lt;span class="w"&gt;  &lt;/span&gt;&lt;span class="m"&gt;0&lt;/span&gt;:02:50&lt;span class="w"&gt;  &lt;/span&gt;&lt;span class="m"&gt;5&lt;/span&gt;:47:18&lt;span class="w"&gt;  &lt;/span&gt;123k
+&lt;/pre&gt;&lt;/div&gt;
+&lt;h2&gt;实验六：server 增加 100ms 延时，server 修改 rmem&lt;/h2&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="c1"&gt;# Server&lt;/span&gt;
+tc&lt;span class="w"&gt; &lt;/span&gt;qdisc&lt;span class="w"&gt; &lt;/span&gt;show&lt;span class="w"&gt; &lt;/span&gt;dev&lt;span class="w"&gt; &lt;/span&gt;enp0s8
+tc&lt;span class="w"&gt; &lt;/span&gt;qdisc&lt;span class="w"&gt; &lt;/span&gt;del&lt;span class="w"&gt; &lt;/span&gt;dev&lt;span class="w"&gt; &lt;/span&gt;enp0s8&lt;span class="w"&gt; &lt;/span&gt;root
+tc&lt;span class="w"&gt; &lt;/span&gt;qdisc&lt;span class="w"&gt; &lt;/span&gt;add&lt;span class="w"&gt; &lt;/span&gt;dev&lt;span class="w"&gt; &lt;/span&gt;enp0s8&lt;span class="w"&gt; &lt;/span&gt;root&lt;span class="w"&gt; &lt;/span&gt;netem&lt;span class="w"&gt; &lt;/span&gt;delay&lt;span class="w"&gt; &lt;/span&gt;100ms
+sysctl&lt;span class="w"&gt; &lt;/span&gt;-w&lt;span class="w"&gt; &lt;/span&gt;net.ipv4.tcp_wmem&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;4096 16384 4194304&amp;quot;&lt;/span&gt;
+sysctl&lt;span class="w"&gt; &lt;/span&gt;-w&lt;span class="w"&gt; &lt;/span&gt;net.ipv4.tcp_rmem&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;4096 4096 4096&amp;quot;&lt;/span&gt;
+&lt;span class="c1"&gt;# Client&lt;/span&gt;
+tcpdump&lt;span class="w"&gt; &lt;/span&gt;-i&lt;span class="w"&gt; &lt;/span&gt;enp0s8&lt;span class="w"&gt; &lt;/span&gt;-n&lt;span class="w"&gt; &lt;/span&gt;host&lt;span class="w"&gt;  &lt;/span&gt;&lt;span class="si"&gt;${&lt;/span&gt;&lt;span class="nv"&gt;serverIP&lt;/span&gt;&lt;span class="si"&gt;}&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;-w&lt;span class="w"&gt; &lt;/span&gt;client_delayServer_100ms_rmem_4096.pcap
+&lt;span class="c1"&gt;# Server&lt;/span&gt;
+tcpdump&lt;span class="w"&gt; &lt;/span&gt;-i&lt;span class="w"&gt; &lt;/span&gt;enp0s8&lt;span class="w"&gt; &lt;/span&gt;-n&lt;span class="w"&gt; &lt;/span&gt;host&lt;span class="w"&gt;  &lt;/span&gt;&lt;span class="si"&gt;${&lt;/span&gt;&lt;span class="nv"&gt;clientIP&lt;/span&gt;&lt;span class="si"&gt;}&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;-w&lt;span class="w"&gt; &lt;/span&gt;server_delayServer_100ms_rmem_4096.pcap
+
+&lt;span class="c1"&gt;# 结果, 大概平均下载速度是 4.87 KB/s&lt;/span&gt;
+$&lt;span class="w"&gt; &lt;/span&gt;curl&lt;span class="w"&gt; &lt;/span&gt;http://192.168.56.101:8089/iso.tar&lt;span class="w"&gt; &lt;/span&gt;--output&lt;span class="w"&gt; &lt;/span&gt;./result_04
+&lt;span class="w"&gt;  &lt;/span&gt;%&lt;span class="w"&gt; &lt;/span&gt;Total&lt;span class="w"&gt;    &lt;/span&gt;%&lt;span class="w"&gt; &lt;/span&gt;Received&lt;span class="w"&gt; &lt;/span&gt;%&lt;span class="w"&gt; &lt;/span&gt;Xferd&lt;span class="w"&gt;  &lt;/span&gt;Average&lt;span class="w"&gt; &lt;/span&gt;Speed&lt;span class="w"&gt;   &lt;/span&gt;Time&lt;span class="w"&gt;    &lt;/span&gt;Time&lt;span class="w"&gt;     &lt;/span&gt;Time&lt;span class="w"&gt;  &lt;/span&gt;Current
+&lt;span class="w"&gt;                                 &lt;/span&gt;Dload&lt;span class="w"&gt;  &lt;/span&gt;Upload&lt;span class="w"&gt;   &lt;/span&gt;Total&lt;span class="w"&gt;   &lt;/span&gt;Spent&lt;span class="w"&gt;    &lt;/span&gt;Left&lt;span class="w"&gt;  &lt;/span&gt;Speed
+&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="m"&gt;63&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;2539M&lt;span class="w"&gt;   &lt;/span&gt;&lt;span class="m"&gt;63&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;1599M&lt;span class="w"&gt;    &lt;/span&gt;&lt;span class="m"&gt;0&lt;/span&gt;&lt;span class="w"&gt;     &lt;/span&gt;&lt;span class="m"&gt;0&lt;/span&gt;&lt;span class="w"&gt;  &lt;/span&gt;4991k&lt;span class="w"&gt;      &lt;/span&gt;&lt;span class="m"&gt;0&lt;/span&gt;&lt;span class="w"&gt;  &lt;/span&gt;&lt;span class="m"&gt;0&lt;/span&gt;:08:40&lt;span class="w"&gt;  &lt;/span&gt;&lt;span class="m"&gt;0&lt;/span&gt;:05:28&lt;span class="w"&gt;  &lt;/span&gt;&lt;span class="m"&gt;0&lt;/span&gt;:03:12&lt;span class="w"&gt; &lt;/span&gt;4030k
+&lt;/pre&gt;&lt;/div&gt;
+&lt;h2&gt;实验七：curl 增加速度控制&lt;/h2&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="c1"&gt;# client &amp;amp; server 保持默认值不动，限速设置小一点，感觉抓包分析更好一点，分别尝试了1k、100k、1M&lt;/span&gt;
+curl&lt;span class="w"&gt; &lt;/span&gt;--limit-rate&lt;span class="w"&gt; &lt;/span&gt;1k&lt;span class="w"&gt; &lt;/span&gt;http://192.168.56.101:8089/iso.tar&lt;span class="w"&gt; &lt;/span&gt;--output&lt;span class="w"&gt; &lt;/span&gt;./result_04
+
+&lt;span class="c1"&gt;# Client&lt;/span&gt;
+tcpdump&lt;span class="w"&gt; &lt;/span&gt;-i&lt;span class="w"&gt; &lt;/span&gt;enp0s8&lt;span class="w"&gt; &lt;/span&gt;-n&lt;span class="w"&gt; &lt;/span&gt;host&lt;span class="w"&gt;  &lt;/span&gt;&lt;span class="si"&gt;${&lt;/span&gt;&lt;span class="nv"&gt;serverIP&lt;/span&gt;&lt;span class="si"&gt;}&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;-w&lt;span class="w"&gt; &lt;/span&gt;client_curl_1k.pcap
+&lt;span class="c1"&gt;# Server&lt;/span&gt;
+tcpdump&lt;span class="w"&gt; &lt;/span&gt;-i&lt;span class="w"&gt; &lt;/span&gt;enp0s8&lt;span class="w"&gt; &lt;/span&gt;-n&lt;span class="w"&gt; &lt;/span&gt;host&lt;span class="w"&gt;  &lt;/span&gt;&lt;span class="si"&gt;${&lt;/span&gt;&lt;span class="nv"&gt;clientIP&lt;/span&gt;&lt;span class="si"&gt;}&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;-w&lt;span class="w"&gt; &lt;/span&gt;server_curl_1k.pcap
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;TCP Window Full 意味着窗口填满，可以看下这篇文章，说的很详细：&lt;a href="https://www.golinuxcloud.com/wireshark-tcp-zero-window/"&gt;Analyse Slow Networks with TCP Zero Window&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;&lt;figure style="flex: 106.85344827586206" &gt;&lt;img width="2479" height="1160" src="https://raw.githubusercontent.com/iYangcw/Photo/master/image-20230427171447952.png" /&gt;&lt;figcaption&gt;image-20230427171447952&lt;/figcaption&gt;&lt;/figure&gt;&lt;/p&gt;
+&lt;h2&gt;结论一：改小 client rmem 和 server wmem 来对比对速度的影响&lt;/h2&gt;
+&lt;p&gt;&lt;strong&gt;实验三 和 实验四&lt;/strong&gt;：平均下载速度为：17 KB/s 和 80 KB/s 的对比&lt;/p&gt;
+&lt;p&gt;相比而言，server 改小了 wmen 速度还凑合，因为server 每次收到ack，立即释放 wmem 来发新的网络包 (内存级别的时延)；&lt;/p&gt;
+&lt;p&gt;如果 client 的 rmem 比较小，当 rmem 满了到应用读走 rmem，rmem 有空闲后需要 rtt 时间反馈到 server 端，server 端才会继续发包。（网络级时延比内存级时延高几个数量级）&lt;/p&gt;
+&lt;p&gt;一句话总结：就是 rmem 从有空到包进来会有很大的间隔 (rtt) , wmem 有空到写包进来没有时延。&lt;/p&gt;
+&lt;p&gt;plantegg 任总的这张图反复看，能有点理解了&lt;/p&gt;
+&lt;p&gt;&lt;figure style="flex: 138.15165876777252" &gt;&lt;img width="3498" height="1266" src="https://raw.githubusercontent.com/iYangcw/Photo/master/server%20_wmem_client_%20rmem.png" /&gt;&lt;/figure&gt;&lt;/p&gt;
+&lt;p&gt;时间比较&lt;/p&gt;
+&lt;p&gt;&lt;figure style="flex: 78.54077253218884" &gt;&lt;img width="732" height="466" src="https://raw.githubusercontent.com/iYangcw/Photo/master/time.png" /&gt;&lt;/figure&gt;&lt;/p&gt;
+&lt;p&gt;分析 实验三和实验四中 server 端抓包的结果：&lt;/p&gt;
+&lt;p&gt;实验三 rmen 的截图，从 No 15 开始看，差不多是 server &amp;gt; client，【TCP Window Full 过会看】然后 No 17 中，client &amp;gt; server ACK 回复，然后过了 0.1 秒，No 18 又开始发送给 client 了。&lt;/p&gt;
+&lt;p&gt;而且 TCP Window Full 很频繁，窗口被填满了，所以下载的速度很慢。截图里能看到 source=client ip 的 win=1460。&lt;/p&gt;
+&lt;p&gt;简单按照步骤描述下过程&lt;/p&gt;
+&lt;p&gt;1、No 11: client 表示我的接收窗口为 1460&lt;/p&gt;
+&lt;p&gt;2、No 12: server 表示我的接收窗口为 29056，以及发送了 730 长度的包&lt;/p&gt;
+&lt;p&gt;3、No 13: server 继续发送了 730 长度的包，由于 730 + 730 等于 client 的接收窗口 1460，所以提示 TCP WIndow Full&lt;/p&gt;
+&lt;p&gt;4、No 14: client 继续说我的接收窗口为 1460&lt;/p&gt;
+&lt;p&gt;实验四 wmen 的截图，server 几个包发给 client，然后 client ack 回复，反复该过程，包的发送比较平稳&lt;/p&gt;
+&lt;p&gt;&lt;figure style="flex: 153.87596899224806" &gt;&lt;img width="2382" height="774" src="https://raw.githubusercontent.com/iYangcw/Photo/master/rmem_client_4096.png" /&gt;&lt;/figure&gt;&lt;/p&gt;
+&lt;p&gt;&lt;figure style="flex: 157.04225352112675" &gt;&lt;img width="2230" height="710" src="https://raw.githubusercontent.com/iYangcw/Photo/master/wmem_server_4096.png" /&gt;&lt;/figure&gt;&lt;/p&gt;
+&lt;h2&gt;结论二：rmem 改小，查看 调整 rrt 后来对比速度&lt;/h2&gt;
+&lt;p&gt;&lt;strong&gt;实验三 和 实验五&lt;/strong&gt; 都是修改 client rmen = 4096，只是一个是 server 端设置了 100ms 和 10ms 延时，但是结果是 17 KB/s 和 123 KB/s 的差距。&lt;/p&gt;
+&lt;p&gt;rrt 增大了，下载速度会下降。&lt;/p&gt;
+&lt;p&gt;plantegg 任总的这张图反复看【&lt;strong&gt;结论二的只需要看图片左边即可&lt;/strong&gt;】，能有点理解了&lt;/p&gt;
+&lt;p&gt;延时增加了，那说明链路上的包也多了，client 接收包的速度慢了，那自然下载速度变慢。&lt;/p&gt;
+&lt;p&gt;BDP 由于和带宽有关，但是两台虚拟机的带宽，目前我计算还有点问题，不清楚是原始状态进行 iperf3 计算，还是调整了系统参数再去计算，目前 BDP 的理解还不够深，以下是 BDP 的计算方法。&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;BDP 举例计算信息如下&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;BDP来设置最大接收窗口（可计算出最大读缓存）。BDP叫做带宽时延积，也就是带宽与网络时延的乘积，例如若我们的带宽为2Gbps，时延为10ms，那么带宽时延积BDP则为2G/8 * 0.01=2.5MB，所以这样的网络中可以设最大接收窗口为2.5MB&lt;/p&gt;
+&lt;p&gt;&lt;figure style="flex: 81.1449159327462" &gt;&lt;img width="4054" height="2498" src="https://raw.githubusercontent.com/iYangcw/Photo/master/rmem_rtt.png" /&gt;&lt;figcaption&gt;rmem_rtt&lt;/figcaption&gt;&lt;/figure&gt;&lt;/p&gt;
+&lt;h2&gt;结论三：网速和 wmem rmem rtt 带宽 的关系&lt;/h2&gt;
+&lt;p&gt;减少 rtt&lt;/p&gt;
+&lt;p&gt;增大带宽&lt;/p&gt;
+&lt;p&gt;增加 server 的 send buffer （对应 wmem）&lt;/p&gt;
+&lt;p&gt;增加 client 的 recv buffer （对应 rmem）&lt;/p&gt;
+</description><author>test@email.com (Sai)</author><guid isPermaLink="true">/Blog-With-GitHub-Boilerplate/archives/TCP/</guid><pubDate>Mon, 01 May 2023 14:00:00 +0806</pubDate></item></channel></rss>
