@@ -1,0 +1,593 @@
+<!DOCTYPE HTML>
+<html lang="zh-CN">
+    <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="renderer" content="webkit">
+    <meta name="HandheldFriendly" content="true">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <meta name="keywords" content="Maverick,熊猫小A,Galileo,blog" />
+    <meta name="generator" content="Maverick 1.1" />
+    <meta name="template" content="Galileo" />
+    <link rel="alternate" type="application/rss+xml" title="个人博客 &raquo; RSS 2.0" href="/Blog-With-GitHub-Boilerplate/feed/index.xml" />
+    <link rel="alternate" type="application/atom+xml" title="个人博客 &raquo; ATOM 1.0" href="/Blog-With-GitHub-Boilerplate/feed/atom/index.xml" />
+    <link rel="stylesheet" href="/Blog-With-GitHub-Boilerplate/assets/galileo-3f4dcc35c9.css">
+    <link rel="stylesheet" href="/Blog-With-GitHub-Boilerplate/assets/ExSearch/ExSearch-182e5a8868.css">
+    <link rel="stylesheet" href="/Blog-With-GitHub-Boilerplate/assets/katex.min.css">
+    <link href="https://fonts.googleapis.com/css?family=Fira+Code&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Droid+Serif:400,700&display=swap">
+    <script>
+        var ExSearchConfig = {
+            root: "",
+            api: "/Blog-With-GitHub-Boilerplate/82bb9f6846472b73985ec8915631c5c3.json"
+        }
+    </script>
+    
+<title>通过 netns 以及 veth bridge 类型创建 IP - 个人博客</title>
+<meta name="author" content="Sai" />
+<meta name="description" content="通过 netns 以及 veth bridge 类型创建 IP" />
+<meta property="og:title" content="通过 netns 以及 veth bridge 类型创建 IP - 个人博客" />
+<meta property="og:description" content="通过 netns 以及 veth bridge 类型创建 IP" />
+<meta property="og:site_name" content="个人博客" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="/Blog-With-GitHub-Boilerplate/archives/通过 netns 以及 veth bridge 类型创建 IP/" />
+<meta property="og:image" content="" />
+<meta property="article:published_time" content="2023-08-16T16:00:00-00.00" />
+<meta name="twitter:title" content="通过 netns 以及 veth bridge 类型创建 IP - 个人博客" />
+<meta name="twitter:description" content="通过 netns 以及 veth bridge 类型创建 IP" />
+<meta name="twitter:card" content="summary" />
+<meta name="twitter:image" content="" />
+
+
+    
+<meta http-equiv="x-dns-prefetch-control" content="on">
+<link rel="dns-prefetch" href="//cdn.jsdelivr.net" />
+
+    </head>
+    
+    <body>
+        
+        <div class="container">
+            <header id="ga-header">
+                <div first>
+                    <aside id="ga-brand">
+                        <h1 class="brand"><a class="no-style" href="/Blog-With-GitHub-Boilerplate/">个人博客</a></h1>
+                        <p>每天进步一点点</p>
+                    </aside>
+                </div>
+                <div second id="ga-nav">
+                    <nav class="navs">
+                        <ul><li><a class="ga-highlight" href="/Blog-With-GitHub-Boilerplate/" target="_self">首页</a></li><span class="separator">·</span><li><a class="ga-highlight" href="/Blog-With-GitHub-Boilerplate/archives/" target="_self">归档</a></li><span class="separator">·</span><li><a class="ga-highlight" href="/Blog-With-GitHub-Boilerplate/about/" target="_self">关于</a></li><span class="separator">·</span><li><a href="#" target="_self" class="search-form-input ga-highlight">搜索</a></li></ul>
+                    </nav>
+                </div>
+            </header>
+            <div class="wrapper">
+                
+<main>    
+    <section class="ga-section ga-content">
+        <article class="yue">
+            <h1 class="ga-post_title">通过 netns 以及 veth bridge 类型创建 IP</h1>
+            <span class="ga-post_meta ga-mono">
+                <span>Sai</span>
+                <time>
+                    2023-08-16
+                </time>
+                
+                in <a no-style class="category" href="/Blog-With-GitHub-Boilerplate/category/Maverick/">
+                    Maverick
+                </a>
+                
+                
+            </span>
+            <div class="ga-content_body">
+                <h1>1、通过 netns 以及 veth bridge 类型创建 IP</h1>
+<p><strong>链接</strong></p>
+<p><a href="https://man7.org/linux/man-pages/man8/ip-netns.8.html">ip netns man url</a></p>
+<p><a href="https://man7.org/linux/man-pages/man8/ip-link.8.html">ip link man url</a></p>
+<p><a href="https://developers.redhat.com/blog/2018/10/22/introduction-to-linux-interfaces-for-virtual-networking#bridge">Introduction to Linux interfaces for virtual networking</a></p>
+<p><a href="https://dustinspecker.com/posts/how-do-kubernetes-and-docker-create-ip-addresses/">How Do Kubernetes and Docker Create IP Addresses?</a></p>
+<p><strong>相关信息</strong></p>
+<p>服务器信息：CentOS Linux release 7.9.2009 (Core)  3.10.0-1160.el7.x86_64</p>
+<p>netns 信息</p>
+<table>
+<thead><tr>
+<th>netns name</th>
+<th>host device and IP</th>
+<th>netns device and IP</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>ns_dustin</td>
+<td>veth_dustin/10.0.0.10</td>
+<td>veth_ns_dustin/10.0.0.11</td>
+</tr>
+<tr>
+<td>veth_ns_dustin</td>
+<td>veth_leah/10.0.0.20</td>
+<td>veth_ns_leah/10.0.0.21</td>
+</tr>
+</tbody>
+</table>
+<p>bridge 信息</p>
+<p><code>bridge_home 10.0.0.1</code></p>
+<p>下述操作学到一点，就是网络访问异常的时候，又不确认是防火墙那个策略导致，可以通过下述操作一点点倒推。</p>
+<div class="highlight"><pre><span></span><span class="c1">#通过 diff 的差异来进行比较，一点点倒推；下述操作遇到的异常大部分是通过这个倒推的，不知道有什么更精确的方法来定位是那个 firewalld 导致的</span>
+iptables<span class="w"> </span>--line-number<span class="w"> </span>-t<span class="w"> </span>filter<span class="w"> </span>-nvxL<span class="w"> </span>&gt;<span class="w"> </span><span class="m">1</span>.filter
+发起<span class="w"> </span>ping<span class="w"> </span>curl<span class="w"> </span>等操作
+iptables<span class="w"> </span>--line-number<span class="w"> </span>-t<span class="w"> </span>filter<span class="w"> </span>-nvxL<span class="w"> </span>&gt;<span class="w"> </span><span class="m">2</span>.filter
+diff<span class="w"> </span><span class="m">1</span>.filter<span class="w"> </span><span class="m">2</span>.filter
+</pre></div>
+<h2>netns and loopback device</h2>
+<p>创建 netns 以及启动 netns 下的 loopback device</p>
+<div class="highlight"><pre><span></span>host<span class="w"> </span>server<span class="w"> </span>
+python3<span class="w"> </span>-m<span class="w"> </span>http.server<span class="w"> </span><span class="m">8080</span>
+<span class="c1"># Create netns</span>
+sudo<span class="w"> </span>ip<span class="w"> </span>netns<span class="w"> </span>add<span class="w"> </span>netns_dustin
+<span class="c1"># show all of the named network namespaces，其实信息位于 /var/run/netns</span>
+sudo<span class="w"> </span>ip<span class="w"> </span>netns<span class="w"> </span>list
+<span class="c1"># netns server</span>
+sudo<span class="w"> </span>ip<span class="w"> </span>netns<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>netns_dustin<span class="w"> </span>python3<span class="w"> </span>-m<span class="w"> </span>http.server<span class="w"> </span><span class="m">8080</span>
+
+<span class="c1"># 刚开始 loopback 设备状态为 DOWN</span>
+sudo<span class="w"> </span>ip<span class="w"> </span>netns<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>netns_dustin<span class="w"> </span>ip<span class="w"> </span>address<span class="w"> </span>list
+<span class="m">1</span>:<span class="w"> </span>lo:<span class="w"> </span>&lt;LOOPBACK&gt;<span class="w"> </span>mtu<span class="w"> </span><span class="m">65536</span><span class="w"> </span>qdisc<span class="w"> </span>noop<span class="w"> </span>state<span class="w"> </span>DOWN<span class="w"> </span>group<span class="w"> </span>default<span class="w"> </span>qlen<span class="w"> </span><span class="m">1000</span>
+<span class="w">    </span>link/loopback<span class="w"> </span><span class="m">00</span>:00:00:00:00:00<span class="w"> </span>brd<span class="w"> </span><span class="m">00</span>:00:00:00:00:00
+
+<span class="c1"># 启动，lo 状态变为 UNKNOWN ，不是 UP ，但是不影响</span>
+sudo<span class="w"> </span>ip<span class="w"> </span>netns<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>netns_dustin<span class="w"> </span>ip<span class="w"> </span>link<span class="w"> </span><span class="nb">set</span><span class="w"> </span>dev<span class="w"> </span>lo<span class="w"> </span>up
+<span class="c1"># 可以访问 netns 下的端口了</span>
+sudo<span class="w"> </span>ip<span class="w"> </span>netns<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>netns_dustin<span class="w"> </span>curl<span class="w"> </span>localhost:8080
+</pre></div>
+<h2>Create veth ：Virtual ethernet interface</h2>
+<div class="highlight"><pre><span></span>sudo<span class="w"> </span>ip<span class="w"> </span>link<span class="w"> </span>add<span class="w"> </span>dev<span class="w"> </span>veth_dustin<span class="w"> </span><span class="nb">type</span><span class="w"> </span>veth<span class="w"> </span>peer<span class="w"> </span>name<span class="w"> </span>veth_ns_dustin
+
+<span class="c1"># 可以看到两个设备的状态均为 DOWN</span>
+ip<span class="w"> </span>link<span class="w"> </span>list
+<span class="m">6</span>:<span class="w"> </span>veth_ns_dustin@veth_dustin:<span class="w"> </span>&lt;BROADCAST,MULTICAST,M-DOWN&gt;<span class="w"> </span>mtu<span class="w"> </span><span class="m">1500</span><span class="w"> </span>qdisc<span class="w"> </span>noop<span class="w"> </span>state<span class="w"> </span>DOWN<span class="w"> </span>mode<span class="w"> </span>DEFAULT<span class="w"> </span>group<span class="w"> </span>default<span class="w"> </span>qlen<span class="w"> </span><span class="m">1000</span>
+<span class="w">    </span>link/ether<span class="w"> </span><span class="m">82</span>:0a:e9:66:7f:40<span class="w"> </span>brd<span class="w"> </span>ff:ff:ff:ff:ff:ff
+<span class="m">7</span>:<span class="w"> </span>veth_dustin@veth_ns_dustin:<span class="w"> </span>&lt;BROADCAST,MULTICAST,M-DOWN&gt;<span class="w"> </span>mtu<span class="w"> </span><span class="m">1500</span><span class="w"> </span>qdisc<span class="w"> </span>noop<span class="w"> </span>state<span class="w"> </span>DOWN<span class="w"> </span>mode<span class="w"> </span>DEFAULT<span class="w"> </span>group<span class="w"> </span>default<span class="w"> </span>qlen<span class="w"> </span><span class="m">1000</span>
+<span class="w">    </span>link/ether<span class="w"> </span>0e:c1:c3:7d:fa:b6<span class="w"> </span>brd<span class="w"> </span>ff:ff:ff:ff:ff:ff
+
+sudo<span class="w"> </span>ip<span class="w"> </span>link<span class="w"> </span><span class="nb">set</span><span class="w"> </span>dev<span class="w"> </span>veth_dustin<span class="w"> </span>up
+
+<span class="c1"># move veth_ns_dustin device to the netns_dustin network namespace</span>
+sudo<span class="w"> </span>ip<span class="w"> </span>link<span class="w"> </span><span class="nb">set</span><span class="w"> </span>veth_ns_dustin<span class="w"> </span>netns<span class="w"> </span>netns_dustin
+
+<span class="c1"># 再执行 ip link list 能看到 veth_ns_dustin 设备不在了</span>
+
+sudo<span class="w"> </span>ip<span class="w"> </span>netns<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>netns_dustin<span class="w"> </span>ip<span class="w"> </span>link<span class="w"> </span>list
+sudo<span class="w"> </span>ip<span class="w"> </span>netns<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>netns_dustin<span class="w"> </span>ip<span class="w"> </span>link<span class="w"> </span><span class="nb">set</span><span class="w"> </span>dev<span class="w"> </span>veth_ns_dustin<span class="w"> </span>up
+</pre></div>
+<h2>Create Virtual IP Addresses For veth</h2>
+<div class="highlight"><pre><span></span>sudo<span class="w"> </span>ip<span class="w"> </span>address<span class="w"> </span>add<span class="w"> </span><span class="m">10</span>.0.0.10/24<span class="w"> </span>dev<span class="w"> </span>veth_dustin
+sudo<span class="w"> </span>ip<span class="w"> </span>netns<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>netns_dustin<span class="w"> </span>ip<span class="w"> </span>address<span class="w"> </span>add<span class="w"> </span><span class="m">10</span>.0.0.11/24<span class="w"> </span>dev<span class="w"> </span>veth_ns_dustin
+</pre></div>
+<p>此时，互相 ping 以及本机调用 netns 下的服务，网络正常</p>
+<div class="highlight"><pre><span></span>相互<span class="w"> </span>ping<span class="w"> </span>正常
+ping<span class="w"> </span><span class="m">10</span>.0.0.10<span class="w"> </span>-c<span class="w"> </span><span class="m">1</span>
+ping<span class="w"> </span><span class="m">10</span>.0.0.11<span class="w"> </span>-c<span class="w"> </span><span class="m">1</span>
+sudo<span class="w"> </span>ip<span class="w"> </span>netns<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>netns_dustin<span class="w"> </span>ping<span class="w"> </span><span class="m">10</span>.0.0.10<span class="w"> </span>-c<span class="w"> </span><span class="m">1</span>
+sudo<span class="w"> </span>ip<span class="w"> </span>netns<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>netns_dustin<span class="w"> </span>ping<span class="w"> </span><span class="m">10</span>.0.0.11<span class="w"> </span>-c<span class="w"> </span><span class="m">1</span>
+<span class="c1"># 本机访问 netns 端口正常</span>
+curl<span class="w"> </span><span class="m">10</span>.0.0.11:8080
+</pre></div>
+<p>netns 调用本机 veth device IP 服务</p>
+<div class="highlight"><pre><span></span>如果主机没有开启防火墙，正常是能通的；本次测试的主机<span class="w"> </span>firewalld<span class="w"> </span>是开启的，以下命令异常
+<span class="c1"># 提示 curl: (7) Failed connect to 10.0.0.10: 8080; No route to host ，按照如下操作开启 8080/tcp 放开</span>
+sudo<span class="w"> </span>ip<span class="w"> </span>netns<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>netns_dustin<span class="w"> </span>curl<span class="w"> </span><span class="m">10</span>.0.0.10:8080
+
+<span class="c1"># 经排查，可能是由于本机 firewalld 启动导致，把 8080 端口放开后，再调用上述命令正常</span>
+firewall-cmd<span class="w"> </span>--zone<span class="o">=</span>public<span class="w"> </span>--add-port<span class="o">=</span><span class="m">8080</span>/tcp<span class="w"> </span>--permanent
+firewall-cmd<span class="w"> </span>--reload
+firewall-cmd<span class="w"> </span>--query-port<span class="o">=</span><span class="m">8080</span>/tcp
+firewall-cmd<span class="w"> </span>--list-port
+</pre></div>
+<p>netns 调用本机 device IP 服务</p>
+<div class="highlight"><pre><span></span>ip<span class="w"> </span>addr<span class="w"> </span>确定本机设备，信息为<span class="w"> </span>ens33<span class="w"> </span><span class="m">192</span>.168.211.131
+<span class="c1"># 调用本地异常，提示 curl: (7) Failed to connect to 192.168.211.131: Network is unreachable</span>
+sudo<span class="w"> </span>ip<span class="w"> </span>netns<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>netns_dustin<span class="w"> </span>curl<span class="w"> </span><span class="m">192</span>.168.211.131:8080
+
+<span class="c1"># 错误信息是因为不知道 how to route the 192.168.211.131 address</span>
+<span class="c1"># if it can&#39;t find a suitable route for our request then direct the request to 10.0.0.10</span>
+<span class="c1"># 添加路由后，上述 curl 正常</span>
+sudo<span class="w"> </span>ip<span class="w"> </span>netns<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>netns_dustin<span class="w"> </span>ip<span class="w"> </span>route<span class="w"> </span>add<span class="w"> </span>default<span class="w"> </span>via<span class="w"> </span><span class="m">10</span>.0.0.10
+
+<span class="c1"># 为什么添加上述 route 信息正常？是因为 10.0.0.10 位于 host network namespace；host network namespace 有 route 信息到 192.168.112.131</span>
+<span class="c1"># netns_dustin --&gt; veth_dustin --&gt; 主机网络栈 --&gt; ens33 --&gt; 192.168.211.131</span>
+ip<span class="w"> </span>route<span class="w"> </span>list
+default<span class="w"> </span>via<span class="w"> </span><span class="m">192</span>.168.211.2<span class="w"> </span>dev<span class="w"> </span>ens33<span class="w"> </span>proto<span class="w"> </span>static<span class="w"> </span>metric<span class="w"> </span><span class="m">100</span>
+<span class="m">10</span>.0.0.0/24<span class="w"> </span>dev<span class="w"> </span>veth_dustin<span class="w"> </span>proto<span class="w"> </span>kernel<span class="w"> </span>scope<span class="w"> </span>link<span class="w"> </span>src<span class="w"> </span><span class="m">10</span>.0.0.10
+<span class="m">192</span>.168.211.0/24<span class="w"> </span>dev<span class="w"> </span>ens33<span class="w"> </span>proto<span class="w"> </span>kernel<span class="w"> </span>scope<span class="w"> </span>link<span class="w"> </span>src<span class="w"> </span><span class="m">192</span>.168.211.131<span class="w"> </span>metric<span class="w"> </span><span class="m">100</span>
+</pre></div>
+<h2>Access Internet From netns</h2>
+<div class="highlight"><pre><span></span>ping<span class="w"> </span>域名异常，ping:<span class="w"> </span>www.baidu.com:<span class="w"> </span>Name<span class="w"> </span>or<span class="w"> </span>service<span class="w"> </span>not<span class="w"> </span>known
+sudo<span class="w"> </span>ip<span class="w"> </span>netns<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>netns_dustin<span class="w"> </span>ping<span class="w"> </span>www.baidu.com<span class="w"> </span>-c<span class="w"> </span><span class="m">1</span>
+
+<span class="c1"># ping IP 异常，From 10.0.0.10 icmp_seq = 1 Destination Host Prohibited</span>
+sudo<span class="w"> </span>ip<span class="w"> </span>netns<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>netns_dustin<span class="w"> </span>ping<span class="w"> </span><span class="m">8</span>.8.8.8
+</pre></div>
+<ul>
+<li>本机开启转发<ul>
+<li><code>/proc/sys/net/ipv4/ip_forward</code> 1 表示转发</li>
+<li><code>echo 1 | sudo tee /proc/sys/net/ipv4/ip_forward</code> 0 的话按照这个开启下</li>
+</ul>
+</li>
+<li>确认 <code>physical device</code> <ul>
+<li><code>ip address list</code> ，选择了 <code>ens33   192.168.211.131</code></li>
+</ul>
+</li>
+<li><p>防火墙</p>
+<ul>
+<li>virtual device to the physical device：<code>sudo iptables --append FORWARD --in-interface veth_dustin --out-interface ens33 --jump ACCEPT</code></li>
+<li>physical device to the virtual device：<code>sudo iptables --append FORWARD --in-interface ens33 --out-interface veth_dustin --jump ACCEPT</code></li>
+<li>源地址转换：<code>sudo iptables --append POSTROUTING --table nat --out-interface ens33 --jump MASQUERADE</code></li>
+<li><p>上述 <code>FORWARD</code> 如果使用 <code>--append</code> 参数追加到最后，后面测试会有问题，第五步有详细说明，默认的是信息如下</p>
+<p><code>iptables --line-number -t filter -nvx -L FORWARD</code></p>
+<p>19         20     1296 REJECT     all  --  <em>      </em>       0.0.0.0/0            0.0.0.0/0            reject-with icmp-host-prohibited</p>
+</li>
+</ul>
+</li>
+</ul>
+<p>按照上述操作后，ping IP 正常，ping 域名还是异常</p>
+<h2>Config netns's resolv.conf</h2>
+<div class="highlight"><pre><span></span>配置<span class="w"> </span>DNS
+sudo<span class="w"> </span>mkdir<span class="w"> </span>-p<span class="w"> </span>/etc/netns/netns_dustin
+<span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;nameserver 8.8.8.8&quot;</span><span class="w"> </span>&gt;<span class="w"> </span>/etc/netns/netns_dustin/resolv.conf
+<span class="c1"># 验证 DNS 配置</span>
+sudo<span class="w"> </span>ip<span class="w"> </span>netns<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>netns_dustin<span class="w"> </span>cat<span class="w"> </span>/etc/resolv.conf
+nameserver<span class="w"> </span><span class="m">8</span>.8.8.8
+</pre></div>
+<p>但是 ping 域名还是异常，可能是由于主机的 <code>firewalld</code> 服务开启导致，放开 <code>53/udp</code> 尝试下</p>
+<div class="highlight"><pre><span></span>sudo<span class="w"> </span>ip<span class="w"> </span>netns<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>netns_dustin<span class="w"> </span>ping<span class="w"> </span>www.baidu.com
+ping:<span class="w"> </span>www.baidu.com:<span class="w"> </span>Name<span class="w"> </span>or<span class="w"> </span>service<span class="w"> </span>not<span class="w"> </span>known
+
+<span class="c1"># 放开 53/udp 以及 53/tcp</span>
+firewall-cmd<span class="w"> </span>--zone<span class="o">=</span>public<span class="w"> </span>--add-port<span class="o">=</span><span class="m">53</span>/udp<span class="w"> </span>--permanent
+firewall-cmd<span class="w"> </span>--reload
+firewall-cmd<span class="w"> </span>--query-port<span class="o">=</span><span class="m">53</span>/udp
+firewall-cmd<span class="w"> </span>--list-port
+</pre></div>
+<p><code>firewall-cmd --reload</code> 执行后，把 <code>Access Internet From netns</code> 处操作的防火墙部分给刷掉了，所以再次执行下</p>
+<div class="highlight"><pre><span></span>查看
+sudo<span class="w"> </span>iptables<span class="w"> </span>--line<span class="w"> </span>-L<span class="w"> </span>FORWARD
+sudo<span class="w"> </span>iptables<span class="w"> </span>--line<span class="w"> </span>-t<span class="w"> </span>nat<span class="w"> </span>-L<span class="w"> </span>POSTROUTING
+<span class="c1"># 再次添加</span>
+sudo<span class="w"> </span>iptables<span class="w"> </span>--append<span class="w"> </span>FORWARD<span class="w"> </span>--in-interface<span class="w"> </span>veth_dustin<span class="w"> </span>--out-interface<span class="w"> </span>ens33<span class="w"> </span>--jump<span class="w"> </span>ACCEPT
+sudo<span class="w"> </span>iptables<span class="w"> </span>--append<span class="w"> </span>FORWARD<span class="w"> </span>--in-interface<span class="w"> </span>ens33<span class="w"> </span>--out-interface<span class="w"> </span>veth_dustin<span class="w"> </span>--jump<span class="w"> </span>ACCEPT
+sudo<span class="w"> </span>iptables<span class="w"> </span>--append<span class="w"> </span>POSTROUTING<span class="w"> </span>--table<span class="w"> </span>nat<span class="w"> </span>--out-interface<span class="w"> </span>ens33<span class="w"> </span>--jump<span class="w"> </span>MASQUERADE
+<span class="c1"># 再次查看 sudo iptables --line -L FORWARD</span>
+Chain<span class="w"> </span>FORWARD<span class="w"> </span><span class="o">(</span>policy<span class="w"> </span>DROP<span class="o">)</span>
+......
+<span class="m">20</span><span class="w">   </span>ACCEPT<span class="w">     </span>all<span class="w">  </span>--<span class="w">  </span>anywhere<span class="w">             </span>anywhere
+<span class="m">21</span><span class="w">   </span>ACCEPT<span class="w">     </span>all<span class="w">  </span>--<span class="w">  </span>anywhere<span class="w">             </span>anywhere
+<span class="c1"># 再次查看 sudo iptables --line -t nat -L POSTROUTING</span>
+Chain<span class="w"> </span>POSTROUTING<span class="w"> </span><span class="o">(</span>policy<span class="w"> </span>ACCEPT<span class="o">)</span>
+........
+<span class="m">6</span><span class="w">    </span>MASQUERADE<span class="w">  </span>all<span class="w">  </span>--<span class="w">  </span>anywhere<span class="w">             </span>anywhere
+
+
+<span class="c1"># 再次验证 ping 域名，还是失败 ping: www.baidu.com: Name or service not known</span>
+sudo<span class="w"> </span>ip<span class="w"> </span>netns<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>netns_dustin<span class="w"> </span>ping<span class="w"> </span>www.baidu.com
+</pre></div>
+<p><strong>不太确认此时还是无法 ping 域名失败原因，待定</strong></p>
+<p><strong>后续抓包定位了，发现 ICMP 异常</strong> ; 实际确定了通过主机测试 PING 正常：<code>ping -I 10.0.0.10 10.0.0.11</code></p>
+<div class="highlight"><pre><span></span>确认<span class="w"> </span>netns<span class="w"> </span>的<span class="w"> </span>PID
+ip<span class="w"> </span>netns<span class="w"> </span>pids<span class="w"> </span>netns_dustin
+<span class="m">2171</span>
+<span class="c1"># 进入，执行 ip addr 确认</span>
+nsenter<span class="w"> </span>-n<span class="w"> </span>--target<span class="w"> </span><span class="m">2171</span>
+<span class="c1"># netns 空间抓包</span>
+tcpdump<span class="w"> </span>-i<span class="w"> </span>any<span class="w"> </span>-w<span class="w"> </span>netns_ping_hosts.pcap
+<span class="c1"># 主机抓包</span>
+tcpdump<span class="w"> </span>-i<span class="w"> </span>any<span class="w"> </span>-w<span class="w"> </span>hosts_ping_hosts.pcap
+<span class="c1"># 主机访问 netns</span>
+sudo<span class="w"> </span>ip<span class="w"> </span>netns<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>netns_dustin<span class="w"> </span>ping<span class="w"> </span>www.baidu.com
+
+<span class="c1"># 抓包异常信息</span>
+<span class="m">12</span><span class="w">  </span><span class="m">3</span>.303467<span class="w">    </span><span class="m">10</span>.0.0.10<span class="w">   </span><span class="m">10</span>.0.0.11<span class="w">   </span>ICMP<span class="w">    </span><span class="m">102</span><span class="w"> </span>Destination<span class="w"> </span>unreachable<span class="w"> </span><span class="o">(</span>Host<span class="w"> </span>administratively<span class="w"> </span>prohibited<span class="o">)</span>
+</pre></div>
+<p>后想到可能是 iptables 规则限制导致，不确定是哪个 chain 导致，通过以下命令一步步倒推</p>
+<div class="highlight"><pre><span></span>iptables<span class="w"> </span>-t<span class="w"> </span>filter<span class="w"> </span>-nvxL<span class="w"> </span>&gt;01.filter
+<span class="c1"># 发下 curl 请求</span>
+sudo<span class="w"> </span>ip<span class="w"> </span>netns<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>netns_dustin<span class="w"> </span>ping<span class="w"> </span>www.baidu.com
+iptables<span class="w"> </span>-t<span class="w"> </span>filter<span class="w"> </span>-nvxL<span class="w"> </span>&gt;02.filter
+
+<span class="c1"># diff 比较，内容比较多，看下来可能和下面这个比较接近</span>
+REJECT<span class="w">     </span>all<span class="w">  </span>--<span class="w">  </span>*<span class="w">      </span>*<span class="w">       </span><span class="m">0</span>.0.0.0/0<span class="w">            </span><span class="m">0</span>.0.0.0/0<span class="w">            </span>reject-with<span class="w"> </span>icmp-host-prohibited
+<span class="c1"># 再细分析，上述 REJECT 对应的 Chain 为 FORWARD</span>
+<span class="c1"># iptables --line-number -t filter -nvx -L FORWARD</span>
+Chain<span class="w"> </span>FORWARD<span class="w"> </span><span class="o">(</span>policy<span class="w"> </span>DROP<span class="w"> </span><span class="m">0</span><span class="w"> </span>packets,<span class="w"> </span><span class="m">0</span><span class="w"> </span>bytes<span class="o">)</span>
+num<span class="w">      </span>pkts<span class="w">      </span>bytes<span class="w"> </span>target<span class="w">     </span>prot<span class="w"> </span>opt<span class="w"> </span><span class="k">in</span><span class="w">     </span>out<span class="w">     </span><span class="nb">source</span><span class="w">               </span>destination
+<span class="m">1</span><span class="w">          </span><span class="m">20</span><span class="w">     </span><span class="m">1296</span><span class="w"> </span>DOCKER-ISOLATION-STAGE-1<span class="w">  </span>all<span class="w">  </span>--<span class="w">  </span>*<span class="w">      </span>*<span class="w">       </span><span class="m">0</span>.0.0.0/0<span class="w">            </span><span class="m">0</span>.0.0.0/0
+<span class="m">2</span><span class="w">          </span><span class="m">20</span><span class="w">     </span><span class="m">1296</span><span class="w"> </span>DOCKER-USER<span class="w">  </span>all<span class="w">  </span>--<span class="w">  </span>*<span class="w">      </span>*<span class="w">       </span><span class="m">0</span>.0.0.0/0<span class="w">            </span><span class="m">0</span>.0.0.0/0
+<span class="m">3</span><span class="w">           </span><span class="m">0</span><span class="w">        </span><span class="m">0</span><span class="w"> </span>ACCEPT<span class="w">     </span>all<span class="w">  </span>--<span class="w">  </span>*<span class="w">      </span>test_bridge<span class="w">  </span><span class="m">0</span>.0.0.0/0<span class="w">            </span><span class="m">0</span>.0.0.0/0<span class="w">            </span>ctstate<span class="w"> </span>RELATED,ESTABLISHED
+<span class="m">4</span><span class="w">           </span><span class="m">0</span><span class="w">        </span><span class="m">0</span><span class="w"> </span>DOCKER<span class="w">     </span>all<span class="w">  </span>--<span class="w">  </span>*<span class="w">      </span>test_bridge<span class="w">  </span><span class="m">0</span>.0.0.0/0<span class="w">            </span><span class="m">0</span>.0.0.0/0
+<span class="m">5</span><span class="w">           </span><span class="m">0</span><span class="w">        </span><span class="m">0</span><span class="w"> </span>ACCEPT<span class="w">     </span>all<span class="w">  </span>--<span class="w">  </span>test_bridge<span class="w"> </span>!test_bridge<span class="w">  </span><span class="m">0</span>.0.0.0/0<span class="w">            </span><span class="m">0</span>.0.0.0/0
+<span class="m">6</span><span class="w">           </span><span class="m">0</span><span class="w">        </span><span class="m">0</span><span class="w"> </span>ACCEPT<span class="w">     </span>all<span class="w">  </span>--<span class="w">  </span>test_bridge<span class="w"> </span>test_bridge<span class="w">  </span><span class="m">0</span>.0.0.0/0<span class="w">            </span><span class="m">0</span>.0.0.0/0
+<span class="m">7</span><span class="w">           </span><span class="m">0</span><span class="w">        </span><span class="m">0</span><span class="w"> </span>ACCEPT<span class="w">     </span>all<span class="w">  </span>--<span class="w">  </span>*<span class="w">      </span>docker0<span class="w">  </span><span class="m">0</span>.0.0.0/0<span class="w">            </span><span class="m">0</span>.0.0.0/0<span class="w">            </span>ctstate<span class="w"> </span>RELATED,ESTABLISHED
+<span class="m">8</span><span class="w">           </span><span class="m">0</span><span class="w">        </span><span class="m">0</span><span class="w"> </span>DOCKER<span class="w">     </span>all<span class="w">  </span>--<span class="w">  </span>*<span class="w">      </span>docker0<span class="w">  </span><span class="m">0</span>.0.0.0/0<span class="w">            </span><span class="m">0</span>.0.0.0/0
+<span class="m">9</span><span class="w">           </span><span class="m">0</span><span class="w">        </span><span class="m">0</span><span class="w"> </span>ACCEPT<span class="w">     </span>all<span class="w">  </span>--<span class="w">  </span>docker0<span class="w"> </span>!docker0<span class="w">  </span><span class="m">0</span>.0.0.0/0<span class="w">            </span><span class="m">0</span>.0.0.0/0
+<span class="m">10</span><span class="w">          </span><span class="m">0</span><span class="w">        </span><span class="m">0</span><span class="w"> </span>ACCEPT<span class="w">     </span>all<span class="w">  </span>--<span class="w">  </span>docker0<span class="w"> </span>docker0<span class="w">  </span><span class="m">0</span>.0.0.0/0<span class="w">            </span><span class="m">0</span>.0.0.0/0
+<span class="m">11</span><span class="w">          </span><span class="m">0</span><span class="w">        </span><span class="m">0</span><span class="w"> </span>ACCEPT<span class="w">     </span>all<span class="w">  </span>--<span class="w">  </span>*<span class="w">      </span>*<span class="w">       </span><span class="m">0</span>.0.0.0/0<span class="w">            </span><span class="m">0</span>.0.0.0/0<span class="w">            </span>ctstate<span class="w"> </span>RELATED,ESTABLISHED
+<span class="m">12</span><span class="w">          </span><span class="m">0</span><span class="w">        </span><span class="m">0</span><span class="w"> </span>ACCEPT<span class="w">     </span>all<span class="w">  </span>--<span class="w">  </span>lo<span class="w">     </span>*<span class="w">       </span><span class="m">0</span>.0.0.0/0<span class="w">            </span><span class="m">0</span>.0.0.0/0
+<span class="m">13</span><span class="w">         </span><span class="m">20</span><span class="w">     </span><span class="m">1296</span><span class="w"> </span>FORWARD_direct<span class="w">  </span>all<span class="w">  </span>--<span class="w">  </span>*<span class="w">      </span>*<span class="w">       </span><span class="m">0</span>.0.0.0/0<span class="w">            </span><span class="m">0</span>.0.0.0/0
+<span class="m">14</span><span class="w">         </span><span class="m">20</span><span class="w">     </span><span class="m">1296</span><span class="w"> </span>FORWARD_IN_ZONES_SOURCE<span class="w">  </span>all<span class="w">  </span>--<span class="w">  </span>*<span class="w">      </span>*<span class="w">       </span><span class="m">0</span>.0.0.0/0<span class="w">            </span><span class="m">0</span>.0.0.0/0
+<span class="m">15</span><span class="w">         </span><span class="m">20</span><span class="w">     </span><span class="m">1296</span><span class="w"> </span>FORWARD_IN_ZONES<span class="w">  </span>all<span class="w">  </span>--<span class="w">  </span>*<span class="w">      </span>*<span class="w">       </span><span class="m">0</span>.0.0.0/0<span class="w">            </span><span class="m">0</span>.0.0.0/0
+<span class="m">16</span><span class="w">         </span><span class="m">20</span><span class="w">     </span><span class="m">1296</span><span class="w"> </span>FORWARD_OUT_ZONES_SOURCE<span class="w">  </span>all<span class="w">  </span>--<span class="w">  </span>*<span class="w">      </span>*<span class="w">       </span><span class="m">0</span>.0.0.0/0<span class="w">            </span><span class="m">0</span>.0.0.0/0
+<span class="m">17</span><span class="w">         </span><span class="m">20</span><span class="w">     </span><span class="m">1296</span><span class="w"> </span>FORWARD_OUT_ZONES<span class="w">  </span>all<span class="w">  </span>--<span class="w">  </span>*<span class="w">      </span>*<span class="w">       </span><span class="m">0</span>.0.0.0/0<span class="w">            </span><span class="m">0</span>.0.0.0/0
+<span class="m">18</span><span class="w">          </span><span class="m">0</span><span class="w">        </span><span class="m">0</span><span class="w"> </span>DROP<span class="w">       </span>all<span class="w">  </span>--<span class="w">  </span>*<span class="w">      </span>*<span class="w">       </span><span class="m">0</span>.0.0.0/0<span class="w">            </span><span class="m">0</span>.0.0.0/0<span class="w">            </span>ctstate<span class="w"> </span>INVALID
+<span class="m">19</span><span class="w">         </span><span class="m">20</span><span class="w">     </span><span class="m">1296</span><span class="w"> </span>REJECT<span class="w">     </span>all<span class="w">  </span>--<span class="w">  </span>*<span class="w">      </span>*<span class="w">       </span><span class="m">0</span>.0.0.0/0<span class="w">            </span><span class="m">0</span>.0.0.0/0<span class="w">            </span>reject-with<span class="w"> </span>icmp-host-prohibited
+<span class="m">20</span><span class="w">          </span><span class="m">0</span><span class="w">        </span><span class="m">0</span><span class="w"> </span>ACCEPT<span class="w">     </span>all<span class="w">  </span>--<span class="w">  </span>veth_dustin<span class="w"> </span>ens33<span class="w">   </span><span class="m">0</span>.0.0.0/0<span class="w">            </span><span class="m">0</span>.0.0.0/0
+<span class="m">21</span><span class="w">          </span><span class="m">0</span><span class="w">        </span><span class="m">0</span><span class="w"> </span>ACCEPT<span class="w">     </span>all<span class="w">  </span>--<span class="w">  </span>ens33<span class="w">  </span>veth_dustin<span class="w">  </span><span class="m">0</span>.0.0.0/0<span class="w">            </span><span class="m">0</span>.0.0.0/0
+</pre></div>
+<p>看下来可能是由于 20 和 21 的两个 ACCEPT 在 <code>REJECT     all</code> 之后导致该问题，按照下述再操作</p>
+<p>重新处理 ACCEPT 的 iptables 规则，调试下看下结果</p>
+<div class="highlight"><pre><span></span><span class="c1"># 原命令</span>
+sudo<span class="w"> </span>iptables<span class="w"> </span>--append<span class="w"> </span>FORWARD<span class="w"> </span>--in-interface<span class="w"> </span>veth_dustin<span class="w"> </span>--out-interface<span class="w"> </span>ens33<span class="w"> </span>--jump<span class="w"> </span>ACCEPT
+sudo<span class="w"> </span>iptables<span class="w"> </span>--append<span class="w"> </span>FORWARD<span class="w"> </span>--in-interface<span class="w"> </span>ens33<span class="w"> </span>--out-interface<span class="w"> </span>veth_dustin<span class="w"> </span>--jump<span class="w"> </span>ACCEPT
+
+<span class="c1"># 删除</span>
+iptables<span class="w"> </span>-t<span class="w"> </span>filter<span class="w"> </span>-D<span class="w"> </span>FORWARD<span class="w"> </span><span class="m">21</span>
+iptables<span class="w"> </span>-t<span class="w"> </span>filter<span class="w"> </span>-D<span class="w"> </span>FORWARD<span class="w"> </span><span class="m">20</span>
+<span class="c1"># 确认</span>
+iptables<span class="w"> </span>--line-number<span class="w"> </span>-t<span class="w"> </span>filter<span class="w"> </span>-nvx<span class="w"> </span>-L<span class="w"> </span>FORWARD
+<span class="c1"># 在指定表的指定链的指定位置添加一条规则</span>
+iptables<span class="w"> </span>-t<span class="w"> </span>filter<span class="w"> </span>-I<span class="w"> </span>FORWARD<span class="w"> </span><span class="m">19</span><span class="w"> </span>--in-interface<span class="w"> </span>veth_dustin<span class="w"> </span>--out-interface<span class="w"> </span>ens33<span class="w"> </span>--jump<span class="w"> </span>ACCEPT
+iptables<span class="w"> </span>-t<span class="w"> </span>filter<span class="w"> </span>-I<span class="w"> </span>FORWARD<span class="w"> </span><span class="m">19</span><span class="w"> </span>--in-interface<span class="w"> </span>ens33<span class="w"> </span>--out-interface<span class="w"> </span>veth_dustin<span class="w"> </span>--jump<span class="w"> </span>ACCEPT
+
+<span class="c1"># 按照理解，现在 ping 域名正常了，实际也确实正常了</span>
+sudo<span class="w"> </span>ip<span class="w"> </span>netns<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>netns_dustin<span class="w"> </span>ping<span class="w"> </span>www.baidu.com
+</pre></div>
+<p><strong>由于调试的时候有个误操作，防火墙增加了 icmp-block ，导致一直 ping 异常的问题</strong></p>
+<p>增加了下述命令，导致 ping IP 和域名的时候均提示：Destination Host Prohibited，下述 iptables 信息是忘记这个误操作的时候一层层倒退的，然后才想到这个问题</p>
+<div class="highlight"><pre><span></span><span class="c1"># 增加 icmp-block</span>
+sudo<span class="w"> </span>firewall-cmd<span class="w"> </span>--zone<span class="w"> </span><span class="o">=</span><span class="w"> </span>public<span class="w"> </span>--add-icmp-block<span class="w"> </span><span class="o">={</span>echo-request,<span class="w"> </span>echo-reply<span class="o">}</span><span class="w"> </span>--permanent
+<span class="c1"># 移除 icmp-block</span>
+sudo<span class="w"> </span>firewall-cmd<span class="w"> </span>--zone<span class="w"> </span><span class="o">=</span><span class="w"> </span>public<span class="w"> </span>--remove-icmp-block<span class="w"> </span><span class="o">={</span>echo-request,<span class="w"> </span>echo-reply<span class="o">}</span><span class="w"> </span>--permanent
+<span class="c1"># 核实icmp-block当前状态</span>
+sudo<span class="w"> </span>firewall-cmd<span class="w"> </span>--zone<span class="w"> </span><span class="o">=</span><span class="w"> </span>public<span class="w"> </span>--list-icmp-blocks
+</pre></div>
+<p>倒推过程</p>
+<div class="highlight"><pre><span></span>可能是<span class="w"> </span>Chain<span class="w"> </span>FWDI_public_deny<span class="w"> </span><span class="o">(</span><span class="m">1</span><span class="w"> </span>references<span class="o">)</span>；该规则拒绝了来自任何源<span class="w"> </span>IP<span class="w"> </span>的<span class="w"> </span>ICMP<span class="w"> </span>流量（类型为<span class="w"> </span><span class="m">8</span>，即<span class="w"> </span>ping<span class="w"> </span>请求）并使用<span class="w"> </span><span class="sb">`</span>icmp-host-prohibited<span class="sb">`</span><span class="w"> </span>拒绝响应；但是不确认为啥防火墙会有这个规则
+Chain<span class="w"> </span>FORWARD<span class="w"> </span><span class="o">(</span>policy<span class="w"> </span>DROP<span class="w"> </span><span class="m">0</span><span class="w"> </span>packets,<span class="w"> </span><span class="m">0</span><span class="w"> </span>bytes<span class="o">)</span>
+<span class="m">15</span><span class="w">         </span><span class="m">55</span><span class="w">     </span><span class="m">4072</span><span class="w"> </span>FORWARD_IN_ZONES<span class="w">  </span>all<span class="w">  </span>--<span class="w">  </span>*<span class="w">      </span>*<span class="w">       </span><span class="m">0</span>.0.0.0/0<span class="w">            </span><span class="m">0</span>.0.0.0/0
+
+Chain<span class="w"> </span>FORWARD_IN_ZONES<span class="w"> </span><span class="o">(</span><span class="m">1</span><span class="w"> </span>references<span class="o">)</span>
+<span class="m">1</span><span class="w">           </span><span class="m">0</span><span class="w">        </span><span class="m">0</span><span class="w"> </span>FWDI_public<span class="w">  </span>all<span class="w">  </span>--<span class="w">  </span>ens36<span class="w">  </span>*<span class="w">       </span><span class="m">0</span>.0.0.0/0<span class="w">            </span><span class="m">0</span>.0.0.0/0<span class="w">           </span><span class="o">[</span>goto<span class="o">]</span>
+
+Chain<span class="w"> </span>FWDI_public<span class="w"> </span><span class="o">(</span><span class="m">3</span><span class="w"> </span>references<span class="o">)</span>
+<span class="m">2</span><span class="w">          </span><span class="m">55</span><span class="w">     </span><span class="m">4072</span><span class="w"> </span>FWDI_public_deny<span class="w">  </span>all<span class="w">  </span>--<span class="w">  </span>*<span class="w">      </span>*<span class="w">       </span><span class="m">0</span>.0.0.0/0<span class="w">            </span><span class="m">0</span>.0.0.0/0
+
+Chain<span class="w"> </span>FWDI_public_deny<span class="w"> </span><span class="o">(</span><span class="m">1</span><span class="w"> </span>references<span class="o">)</span>
+<span class="m">1</span><span class="w">          </span><span class="m">27</span><span class="w">     </span><span class="m">2268</span><span class="w"> </span>REJECT<span class="w">     </span>icmp<span class="w"> </span>--<span class="w">  </span>*<span class="w">      </span>*<span class="w">       </span><span class="m">0</span>.0.0.0/0<span class="w">            </span><span class="m">0</span>.0.0.0/0<span class="w">            </span>icmptype<span class="w"> </span><span class="m">8</span><span class="w"> </span>reject-with<span class="w"> </span>icmp-host-prohibited
+</pre></div>
+<h2>communicate across multiple network namespaces</h2>
+<div class="highlight"><pre><span></span>sudo<span class="w"> </span>ip<span class="w"> </span>link<span class="w"> </span>add<span class="w"> </span>dev<span class="w"> </span>veth_leah<span class="w"> </span><span class="nb">type</span><span class="w"> </span>veth<span class="w"> </span>peer<span class="w"> </span>name<span class="w"> </span>veth_ns_leah
+sudo<span class="w"> </span>ip<span class="w"> </span>link<span class="w"> </span><span class="nb">set</span><span class="w"> </span>dev<span class="w"> </span>veth_leah<span class="w"> </span>up
+sudo<span class="w"> </span>ip<span class="w"> </span>address<span class="w"> </span>add<span class="w"> </span><span class="m">10</span>.0.0.20/24<span class="w"> </span>dev<span class="w"> </span>veth_leah
+sudo<span class="w"> </span>ip<span class="w"> </span>netns<span class="w"> </span>add<span class="w"> </span>netns_leah
+sudo<span class="w"> </span>ip<span class="w"> </span>link<span class="w"> </span><span class="nb">set</span><span class="w"> </span>dev<span class="w"> </span>veth_ns_leah<span class="w"> </span>netns<span class="w"> </span>netns_leah
+sudo<span class="w"> </span>ip<span class="w"> </span>netns<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>netns_leah<span class="w"> </span>ip<span class="w"> </span>link<span class="w"> </span><span class="nb">set</span><span class="w"> </span>dev<span class="w"> </span>lo<span class="w"> </span>up
+sudo<span class="w"> </span>ip<span class="w"> </span>netns<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>netns_leah<span class="w"> </span>ip<span class="w"> </span>link<span class="w"> </span><span class="nb">set</span><span class="w"> </span>dev<span class="w"> </span>veth_ns_leah<span class="w"> </span>up
+sudo<span class="w"> </span>ip<span class="w"> </span>netns<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>netns_leah<span class="w"> </span>ip<span class="w"> </span>address<span class="w"> </span>add<span class="w"> </span><span class="m">10</span>.0.0.21/24<span class="w"> </span>dev<span class="w"> </span>veth_ns_leah
+sudo<span class="w"> </span>ip<span class="w"> </span>netns<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>netns_leah<span class="w"> </span>ip<span class="w"> </span>route<span class="w"> </span>add<span class="w"> </span>default<span class="w"> </span>via<span class="w"> </span><span class="m">10</span>.0.0.20
+sudo<span class="w"> </span>ip<span class="w"> </span>netns<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>netns_leah<span class="w"> </span>python3<span class="w"> </span>-m<span class="w"> </span>http.server<span class="w"> </span><span class="m">8080</span>
+</pre></div>
+<p>netns 之间网络互 ping，发现无法连接；本机 ping 之前的 netns 仍然正常</p>
+<div class="highlight"><pre><span></span>正常
+ping<span class="w"> </span><span class="m">10</span>.0.0.11<span class="w"> </span>-c<span class="w"> </span><span class="m">1</span>
+<span class="c1"># 主机 &gt; netns_leah IP</span>
+ping<span class="w"> </span><span class="m">10</span>.0.0.21<span class="w"> </span>-c<span class="w"> </span><span class="m">1</span>
+<span class="c1"># netns_dustin &gt; netns_leah IP</span>
+sudo<span class="w"> </span>ip<span class="w"> </span>netns<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>netns_dustin<span class="w"> </span>ping<span class="w"> </span><span class="m">10</span>.0.0.21<span class="w"> </span>-c<span class="w"> </span><span class="m">1</span>
+<span class="c1"># netns_leah &gt; netns_dustin IP</span>
+sudo<span class="w"> </span>ip<span class="w"> </span>netns<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>netns_leah<span class="w"> </span>ping<span class="w"> </span><span class="m">10</span>.0.0.11<span class="w"> </span>-c<span class="w"> </span><span class="m">1</span>
+</pre></div>
+<p>无法 ping 的原因如下：</p>
+<p>IP 路由将使用第一个 <code>10.0.0.0/24</code> 路由进行任何匹配，这意味着所有 <code>10.0.0.0/24</code> 流量将通过 <code>veth_dustin</code> 接口定向。即使有时希望流量通过 <code>veth_leah</code> 接口定向。</p>
+<div class="highlight"><pre><span></span>ip<span class="w"> </span>route<span class="w"> </span>list
+<span class="c1"># 10.0.0.0/24 dev veth_leah proto kernel scope link src 10.0.0.20 这条路由其实是上述操作，自动增加的路由信息；实际测试下来执行下面三条命令，即会自动增加路由信息</span>
+<span class="c1"># sudo ip link add dev veth_leah type veth peer name veth_ns_leah</span>
+<span class="c1"># sudo ip link set dev veth_leah up</span>
+<span class="c1"># sudo ip address add 10.0.0.20/24 dev veth_leah</span>
+default<span class="w"> </span>via<span class="w"> </span><span class="m">192</span>.168.211.2<span class="w"> </span>dev<span class="w"> </span>ens33<span class="w"> </span>proto<span class="w"> </span>static<span class="w"> </span>metric<span class="w"> </span><span class="m">102</span>
+<span class="m">10</span>.0.0.0/24<span class="w"> </span>dev<span class="w"> </span>veth_dustin<span class="w"> </span>proto<span class="w"> </span>kernel<span class="w"> </span>scope<span class="w"> </span>link<span class="w"> </span>src<span class="w"> </span><span class="m">10</span>.0.0.10
+<span class="m">10</span>.0.0.0/24<span class="w"> </span>dev<span class="w"> </span>veth_leah<span class="w"> </span>proto<span class="w"> </span>kernel<span class="w"> </span>scope<span class="w"> </span>link<span class="w"> </span>src<span class="w"> </span><span class="m">10</span>.0.0.20
+</pre></div>
+<p>可以通过设置不同区域的 IP 来解决，大致如下（下述操作可以不做，不影响本文档主流程）：</p>
+<div class="highlight"><pre><span></span>sudo<span class="w"> </span>ip<span class="w"> </span>link<span class="w"> </span>add<span class="w"> </span>dev<span class="w"> </span>veth_test_01<span class="w"> </span><span class="nb">type</span><span class="w"> </span>veth<span class="w"> </span>peer<span class="w"> </span>name<span class="w"> </span>veth_ns_test_01
+ip<span class="w"> </span>link<span class="w"> </span><span class="nb">set</span><span class="w"> </span>dev<span class="w"> </span>veth_test_01<span class="w"> </span>up
+ip<span class="w"> </span>address<span class="w"> </span>add<span class="w"> </span><span class="m">10</span>.0.1.10/24<span class="w"> </span>dev<span class="w"> </span>veth_test_01
+
+<span class="c1"># 再查看一下主机的 route，发现新增一个，和之前设置的 IP 不一样</span>
+ip<span class="w"> </span>route<span class="w"> </span>list
+default<span class="w"> </span>via<span class="w"> </span><span class="m">192</span>.168.211.2<span class="w"> </span>dev<span class="w"> </span>ens33<span class="w"> </span>proto<span class="w"> </span>static<span class="w"> </span>metric<span class="w"> </span><span class="m">102</span>
+<span class="m">10</span>.0.0.0/24<span class="w"> </span>dev<span class="w"> </span>veth_dustin<span class="w"> </span>proto<span class="w"> </span>kernel<span class="w"> </span>scope<span class="w"> </span>link<span class="w"> </span>src<span class="w"> </span><span class="m">10</span>.0.0.10
+......
+<span class="m">10</span>.0.1.0/24<span class="w"> </span>dev<span class="w"> </span>veth_test_01<span class="w"> </span>proto<span class="w"> </span>kernel<span class="w"> </span>scope<span class="w"> </span>link<span class="w"> </span>src<span class="w"> </span><span class="m">10</span>.0.1.10
+
+<span class="c1"># 不光操作上述三个命令，还有给 netns 设置的默认路由，也得根据上述 IP 一并修改；下面的路由信息需要修改 IP，netns device IP 应该是可以不修改；可以简单理解为不同的 netns 相互不干涉</span>
+sudo<span class="w"> </span>ip<span class="w"> </span>netns<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>netns_leah<span class="w"> </span>ip<span class="w"> </span>address<span class="w"> </span>add<span class="w"> </span><span class="m">10</span>.0.0.21/24<span class="w"> </span>dev<span class="w"> </span>veth_ns_leah
+sudo<span class="w"> </span>ip<span class="w"> </span>netns<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>netns_leah<span class="w"> </span>ip<span class="w"> </span>route<span class="w"> </span>add<span class="w"> </span>default<span class="w"> </span>via<span class="w"> </span><span class="m">10</span>.0.1.10
+</pre></div>
+<p>按照上述操作，操作复杂且重复，后面通过 Linux virtual bridge devices 实现</p>
+<h2>Create virtual bridge to join veth pairs</h2>
+<p>最终效果图如下</p>
+<p><figure style="flex: 59.705372616984405" ><img width="689" height="577" src="https://raw.githubusercontent.com/iYangcw/Photo/master/ip%20link%20bridge.png" /><figcaption>image-20230816155731081</figcaption></figure></p>
+<p><code>bridge</code> 允许多个以太网和虚拟以太网设备相互通信</p>
+<div class="highlight"><pre><span></span>sudo<span class="w"> </span>ip<span class="w"> </span>link<span class="w"> </span>add<span class="w"> </span>dev<span class="w"> </span>bridge_home<span class="w"> </span><span class="nb">type</span><span class="w"> </span>bridge
+sudo<span class="w"> </span>ip<span class="w"> </span>address<span class="w"> </span>add<span class="w"> </span><span class="m">10</span>.0.0.1/24<span class="w"> </span>dev<span class="w"> </span>bridge_home
+sudo<span class="w"> </span>ip<span class="w"> </span>link<span class="w"> </span><span class="nb">set</span><span class="w"> </span>bridge_home<span class="w"> </span>up
+
+<span class="c1"># 验证，可以看到 bridge_home ，状态为 UNKNOWN [不是 UP ，但是看下来不影响]</span>
+ip<span class="w"> </span>link<span class="w"> </span>list
+</pre></div>
+<p>将主机的两个设备连接到 bridge：此时发现主机 ping 10.0.0.11 不通；有重新验证过，暂时原因不确定</p>
+<div class="highlight"><pre><span></span>sudo<span class="w"> </span>ip<span class="w"> </span>link<span class="w"> </span><span class="nb">set</span><span class="w"> </span>dev<span class="w"> </span>veth_dustin<span class="w"> </span>master<span class="w"> </span>bridge_home
+sudo<span class="w"> </span>ip<span class="w"> </span>link<span class="w"> </span><span class="nb">set</span><span class="w"> </span>dev<span class="w"> </span>veth_leah<span class="w"> </span>master<span class="w"> </span>bridge_home
+</pre></div>
+<p>更改 netns 的默认路由，改成 use the <code>bridge_home</code> IP address</p>
+<div class="highlight"><pre><span></span>sudo<span class="w"> </span>ip<span class="w"> </span>netns<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>netns_dustin<span class="w"> </span>ip<span class="w"> </span>route<span class="w"> </span>delete<span class="w"> </span>default<span class="w"> </span>via<span class="w"> </span><span class="m">10</span>.0.0.10
+sudo<span class="w"> </span>ip<span class="w"> </span>netns<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>netns_dustin<span class="w"> </span>ip<span class="w"> </span>route<span class="w"> </span>add<span class="w"> </span>default<span class="w"> </span>via<span class="w"> </span><span class="m">10</span>.0.0.1
+sudo<span class="w"> </span>ip<span class="w"> </span>netns<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>netns_leah<span class="w"> </span>ip<span class="w"> </span>route<span class="w"> </span>delete<span class="w"> </span>default<span class="w"> </span>via<span class="w"> </span><span class="m">10</span>.0.0.20
+sudo<span class="w"> </span>ip<span class="w"> </span>netns<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>netns_leah<span class="w"> </span>ip<span class="w"> </span>route<span class="w"> </span>add<span class="w"> </span>default<span class="w"> </span>via<span class="w"> </span><span class="m">10</span>.0.0.1
+</pre></div>
+<p><code>10.0.0.0/24</code> 匹配的三条路由（ <code>veth_dustin</code> 、 <code>veth_leah</code> 和 <code>bridge_home</code> ）; 解决这个问题的简单方案是删除 <code>veth_dustin</code> 和 <code>veth_leah</code> 的 IP 地址；删除后，ping 10.0.0.11 正常了</p>
+<div class="highlight"><pre><span></span>ip<span class="w"> </span>route<span class="w"> </span>list
+
+......
+<span class="m">10</span>.0.0.0/24<span class="w"> </span>dev<span class="w"> </span>veth_dustin<span class="w"> </span>proto<span class="w"> </span>kernel<span class="w"> </span>scope<span class="w"> </span>link<span class="w"> </span>src<span class="w"> </span><span class="m">10</span>.0.0.10
+<span class="m">10</span>.0.0.0/24<span class="w"> </span>dev<span class="w"> </span>veth_leah<span class="w"> </span>proto<span class="w"> </span>kernel<span class="w"> </span>scope<span class="w"> </span>link<span class="w"> </span>src<span class="w"> </span><span class="m">10</span>.0.0.20
+<span class="m">10</span>.0.0.0/24<span class="w"> </span>dev<span class="w"> </span>bridge_home<span class="w"> </span>proto<span class="w"> </span>kernel<span class="w"> </span>scope<span class="w"> </span>link<span class="w"> </span>src<span class="w"> </span><span class="m">10</span>.0.0.1
+<span class="m">172</span>.17.0.0/16<span class="w"> </span>dev<span class="w"> </span>docker0<span class="w"> </span>proto<span class="w"> </span>kernel<span class="w"> </span>scope<span class="w"> </span>link<span class="w"> </span>src<span class="w"> </span><span class="m">172</span>.17.0.1
+
+<span class="c1"># 删除 IP</span>
+sudo<span class="w"> </span>ip<span class="w"> </span>address<span class="w"> </span>delete<span class="w"> </span><span class="m">10</span>.0.0.10/24<span class="w"> </span>dev<span class="w"> </span>veth_dustin
+sudo<span class="w"> </span>ip<span class="w"> </span>address<span class="w"> </span>delete<span class="w"> </span><span class="m">10</span>.0.0.20/24<span class="w"> </span>dev<span class="w"> </span>veth_leah
+</pre></div>
+<p>netns 之间验证 ping 和 curl ， ping 正常，curl 异常</p>
+<div class="highlight"><pre><span></span>sudo<span class="w"> </span>ip<span class="w"> </span>netns<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>netns_dustin<span class="w"> </span>ping<span class="w"> </span><span class="m">10</span>.0.0.21<span class="w"> </span>-c<span class="w"> </span><span class="m">1</span>
+sudo<span class="w"> </span>ip<span class="w"> </span>netns<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>netns_leah<span class="w"> </span>ping<span class="w"> </span><span class="m">10</span>.0.0.11<span class="w"> </span>-c<span class="w"> </span><span class="m">1</span>
+<span class="c1"># 异常 curl: (7) Failed connect to 10.0.0.11: 8080; No route to host</span>
+sudo<span class="w"> </span>ip<span class="w"> </span>netns<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>netns_dustin<span class="w"> </span>curl<span class="w"> </span><span class="m">10</span>.0.0.21:8080
+sudo<span class="w"> </span>ip<span class="w"> </span>netns<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>netns_leah<span class="w"> </span>curl<span class="w"> </span><span class="m">10</span>.0.0.11:8080
+</pre></div>
+<p>按照这个命令操作，curl 还是异常，推测是由于 append 追加到最后，前面有 REJECT all 导致；实际看下来应该确实是这个原因</p>
+<div class="highlight"><pre><span></span>sudo<span class="w"> </span>iptables<span class="w"> </span>--append<span class="w"> </span>FORWARD
+</pre></div>
+<p>重新配置</p>
+<div class="highlight"><pre><span></span>查看
+iptables<span class="w"> </span>--line-number<span class="w"> </span>-t<span class="w"> </span>filter<span class="w"> </span>-nvx<span class="w"> </span>-L<span class="w"> </span>FORWARD
+......
+<span class="m">19</span><span class="w">         </span><span class="m">14</span><span class="w">      </span><span class="m">914</span><span class="w"> </span>ACCEPT<span class="w">     </span>all<span class="w">  </span>--<span class="w">  </span>veth_dustin<span class="w"> </span>ens33<span class="w">   </span><span class="m">0</span>.0.0.0/0<span class="w">            </span><span class="m">0</span>.0.0.0/0
+<span class="m">20</span><span class="w">          </span><span class="m">0</span><span class="w">        </span><span class="m">0</span><span class="w"> </span>ACCEPT<span class="w">     </span>all<span class="w">  </span>--<span class="w">  </span>ens33<span class="w">  </span>veth_dustin<span class="w">  </span><span class="m">0</span>.0.0.0/0<span class="w">            </span><span class="m">0</span>.0.0.0/0
+<span class="m">21</span><span class="w">         </span><span class="m">17</span><span class="w">     </span><span class="m">1040</span><span class="w"> </span>REJECT<span class="w">     </span>all<span class="w">  </span>--<span class="w">  </span>*<span class="w">      </span>*<span class="w">       </span><span class="m">0</span>.0.0.0/0<span class="w">            </span><span class="m">0</span>.0.0.0/0<span class="w">            </span>reject-with<span class="w"> </span>icmp-host-prohibited
+<span class="m">22</span><span class="w">          </span><span class="m">0</span><span class="w">        </span><span class="m">0</span><span class="w"> </span>ACCEPT<span class="w">     </span>all<span class="w">  </span>--<span class="w">  </span>bridge_home<span class="w"> </span>bridge_home<span class="w">  </span><span class="m">0</span>.0.0.0/0<span class="w">            </span><span class="m">0</span>.0.0.0/0
+
+<span class="c1"># 删除</span>
+iptables<span class="w"> </span>-t<span class="w"> </span>filter<span class="w"> </span>-D<span class="w"> </span>FORWARD<span class="w"> </span><span class="m">22</span>
+
+<span class="c1"># 确认</span>
+iptables<span class="w"> </span>--line-number<span class="w"> </span>-t<span class="w"> </span>filter<span class="w"> </span>-nvx<span class="w"> </span>-L<span class="w"> </span>FORWARD
+
+<span class="c1"># 在指定表的指定链的指定位置添加一条规则</span>
+iptables<span class="w"> </span>-t<span class="w"> </span>filter<span class="w"> </span>-I<span class="w"> </span>FORWARD<span class="w"> </span><span class="m">21</span><span class="w"> </span>--in-interface<span class="w"> </span>bridge_home<span class="w"> </span>--out-interface<span class="w"> </span>bridge_home<span class="w"> </span>--jump<span class="w"> </span>ACCEPT
+</pre></div>
+<p>清理以前的规则</p>
+<div class="highlight"><pre><span></span>iptables<span class="w"> </span>--line-number<span class="w"> </span>-t<span class="w"> </span>filter<span class="w"> </span>-nxvL<span class="w"> </span>FORWARD
+<span class="c1"># 删除</span>
+iptables<span class="w"> </span>-t<span class="w"> </span>filter<span class="w"> </span>-D<span class="w"> </span>FORWARD<span class="w"> </span><span class="m">20</span>
+iptables<span class="w"> </span>-t<span class="w"> </span>filter<span class="w"> </span>-D<span class="w"> </span>FORWARD<span class="w"> </span><span class="m">19</span>
+</pre></div>
+<p>netns 通过 bridge 访问外网不通，见下</p>
+<div class="highlight"><pre><span></span>sudo<span class="w"> </span>ip<span class="w"> </span>netns<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>netns_dustin<span class="w"> </span>curl<span class="w"> </span>http://www.baidu.com
+curl:<span class="w"> </span><span class="o">(</span><span class="m">6</span><span class="o">)</span><span class="w"> </span>Could<span class="w"> </span>not<span class="w"> </span>resolve<span class="w"> </span>host:<span class="w"> </span>www.baidu.com<span class="p">;</span><span class="w"> </span>Unknown<span class="w"> </span>error
+
+sudo<span class="w"> </span>ip<span class="w"> </span>netns<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>netns_dustin<span class="w"> </span>ping<span class="w"> </span><span class="m">8</span>.8.8.8
+curl:<span class="w"> </span><span class="o">(</span><span class="m">6</span><span class="o">)</span><span class="w"> </span>Could<span class="w"> </span>not<span class="w"> </span>resolve<span class="w"> </span>host:<span class="w"> </span>ping<span class="p">;</span><span class="w"> </span>Unknown<span class="w"> </span>error
+</pre></div>
+<p>增加下述操作，连接外网正常</p>
+<div class="highlight"><pre><span></span><span class="c1"># 查看，发现最后一步是 REJECT     all</span>
+iptables<span class="w"> </span>--line-number<span class="w"> </span>-t<span class="w"> </span>filter<span class="w"> </span>-nxvL<span class="w"> </span>FORWARD
+
+<span class="c1"># 增加，不要 append 追加</span>
+sudo<span class="w"> </span>iptables<span class="w"> </span>-I<span class="w">  </span>FORWARD<span class="w"> </span><span class="m">20</span><span class="w"> </span>--in-interface<span class="w"> </span>bridge_home<span class="w"> </span>--out-interface<span class="w"> </span>ens33<span class="w"> </span>--jump<span class="w"> </span>ACCEPT
+sudo<span class="w"> </span>iptables<span class="w"> </span>-I<span class="w">  </span>FORWARD<span class="w"> </span><span class="m">21</span><span class="w"> </span>--in-interface<span class="w"> </span>ens33<span class="w"> </span>--out-interface<span class="w"> </span>bridge_home<span class="w"> </span>--jump<span class="w"> </span>ACCEPT
+
+<span class="c1"># 验证外网</span>
+sudo<span class="w"> </span>ip<span class="w"> </span>netns<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>netns_dustin<span class="w"> </span>ping<span class="w"> </span><span class="m">8</span>.8.8.8
+sudo<span class="w"> </span>ip<span class="w"> </span>netns<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>netns_dustin<span class="w"> </span>ping<span class="w"> </span>www.baidu.com
+sudo<span class="w"> </span>ip<span class="w"> </span>netns<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>netns_dustin<span class="w"> </span>curl<span class="w"> </span>http://www.baidu.com
+</pre></div>
+<h2>Clean UP</h2>
+<div class="highlight"><pre><span></span>sudo<span class="w"> </span>ip<span class="w"> </span>link<span class="w"> </span>delete<span class="w"> </span>dev<span class="w"> </span>bridge_home
+sudo<span class="w"> </span>ip<span class="w"> </span>link<span class="w"> </span>delete<span class="w"> </span>dev<span class="w"> </span>veth_dustin
+sudo<span class="w"> </span>ip<span class="w"> </span>link<span class="w"> </span>delete<span class="w"> </span>dev<span class="w"> </span>veth_leah
+sudo<span class="w"> </span>ip<span class="w"> </span>netns<span class="w"> </span>delete<span class="w"> </span>netns_dustin
+sudo<span class="w"> </span>ip<span class="w"> </span>netns<span class="w"> </span>delete<span class="w"> </span>netns_leah
+sudo<span class="w"> </span>iptables<span class="w"> </span>--delete<span class="w"> </span>FORWARD<span class="w"> </span>--in-interface<span class="w"> </span>bridge_home<span class="w"> </span>--out-interface<span class="w"> </span>ens33<span class="w"> </span>--jump<span class="w"> </span>ACCEPT
+sudo<span class="w"> </span>iptables<span class="w"> </span>--delete<span class="w"> </span>FORWARD<span class="w"> </span>--in-interface<span class="w"> </span>ens33<span class="w"> </span>--out-interface<span class="w"> </span>bridge_home<span class="w"> </span>--jump<span class="w"> </span>ACCEPT
+sudo<span class="w"> </span>iptables<span class="w"> </span>--delete<span class="w"> </span>POSTROUTING<span class="w"> </span>--table<span class="w"> </span>nat<span class="w"> </span>--out-interface<span class="w"> </span>ens33<span class="w"> </span>--jump<span class="w"> </span>MASQUERADE
+</pre></div>
+
+            </div>
+        </article>
+        <div id="ga-tags">
+    
+    <span class="ga-tag">
+        <a class="ga-highlight" href="/Blog-With-GitHub-Boilerplate/tag/TCP/">#TCP</a>
+    </span>
+    
+</div>
+    </section>
+
+    
+<section id="ga-content_pager">
+
+    <div class="next">
+        <h3>没有了</h3>
+        <p class="yue">这是最新的文章</p>
+    </div>
+
+
+    <div class="prev">
+        <a class="ga-highlight" href="/Blog-With-GitHub-Boilerplate/archives/TCP发送窗口、接收窗口、wmem、rmem 关系/">TCP发送窗口、接收窗口、wmem、rmem 关系</a>
+        <p class="yue">TCP发送窗口、接收窗口、wmem、rmem 关系</p>
+    </div>
+
+</section>
+
+
+    
+
+</main>
+
+                <footer class="ga-mono" id="ga-footer">
+                    <section>
+                        <span id="ga-uptime"></span>
+                        <span class="brand">个人博客</span>
+                    </section>
+                    <section>
+                        <p class="copyright">
+                            <span>Copyright © 2023 Clover</span>
+                            <span>Powered by <a no-style href="https://github.com/AlanDecode/Maverick" target="_blank">Maverick & Galileo</a></span>
+                        </p>
+                        <div class="copyright">
+                            <span class="footer-addon">
+                                
+                            </span>
+                            <nav class="social-links">
+                                <ul><li><a class="no-style" title="Twitter" href="https://twitter.com/iCloverLL" target="_blank"><i class="gi gi-twitter"></i>Twitter</a></li></ul>
+                            </nav>
+                        </div>
+                    </section>
+                    <script>
+                        var site_build_date = "2019-12-18T16:51+08:00"
+                    </script>
+                    <script src="/Blog-With-GitHub-Boilerplate/assets/galileo-dc4baa7cf4.js"></script>
+                </footer>
+            </div>
+        </div>
+    </div>
+
+    <!--katex-->
+    <script defer src="/Blog-With-GitHub-Boilerplate/assets/katex.min.js"></script>
+    <script>
+    mathOpts = {
+        delimiters: [
+            {left: "$$", right: "$$", display: true},
+            {left: "\\[", right: "\\]", display: true},
+            {left: "$", right: "$", display: false},
+            {left: "\\(", right: "\\)", display: false}
+        ]
+    };
+    </script>
+    <script defer src="/Blog-With-GitHub-Boilerplate/assets/auto-render.min.js" onload="renderMathInElement(document.body, mathOpts);"></script>
+
+    <script src="/Blog-With-GitHub-Boilerplate/assets/ExSearch/jquery.min.js"></script>
+    <script src="/Blog-With-GitHub-Boilerplate/assets/ExSearch/ExSearch-493cb9cd89.js"></script>
+
+    
+    </body>
+</html>
