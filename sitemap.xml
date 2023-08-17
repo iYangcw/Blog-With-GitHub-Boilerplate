@@ -13,7 +13,7 @@ xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 
 <url>
     <loc>/Blog-With-GitHub-Boilerplate/archives/通过 netns 以及 veth bridge 类型创建 IP/</loc>
-    <lastmod>2023-08-16</lastmod>
+    <lastmod>2023-08-17</lastmod>
     <changefreq>always</changefreq>
     <priority>0.5</priority>
 </url>

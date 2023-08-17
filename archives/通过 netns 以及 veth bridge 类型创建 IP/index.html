@@ -19,7 +19,7 @@
     <script>
         var ExSearchConfig = {
             root: "",
-            api: "/Blog-With-GitHub-Boilerplate/82bb9f6846472b73985ec8915631c5c3.json"
+            api: "/Blog-With-GitHub-Boilerplate/9a03ea3c8a773644e554e8ab0949ef2a.json"
         }
     </script>
     
@@ -32,7 +32,7 @@
 <meta property="og:type" content="article" />
 <meta property="og:url" content="/Blog-With-GitHub-Boilerplate/archives/通过 netns 以及 veth bridge 类型创建 IP/" />
 <meta property="og:image" content="" />
-<meta property="article:published_time" content="2023-08-16T16:00:00-00.00" />
+<meta property="article:published_time" content="2023-08-17T09:00:00-00.00" />
 <meta name="twitter:title" content="通过 netns 以及 veth bridge 类型创建 IP - 个人博客" />
 <meta name="twitter:description" content="通过 netns 以及 veth bridge 类型创建 IP" />
 <meta name="twitter:card" content="summary" />
@@ -70,7 +70,7 @@
             <span class="ga-post_meta ga-mono">
                 <span>Sai</span>
                 <time>
-                    2023-08-16
+                    2023-08-17
                 </time>
                 
                 in <a no-style class="category" href="/Blog-With-GitHub-Boilerplate/category/Maverick/">
@@ -445,8 +445,21 @@ sudo<span class="w"> </span>ip<span class="w"> </span>netns<span class="w"> </sp
 <span class="c1"># 删除 IP</span>
 sudo<span class="w"> </span>ip<span class="w"> </span>address<span class="w"> </span>delete<span class="w"> </span><span class="m">10</span>.0.0.10/24<span class="w"> </span>dev<span class="w"> </span>veth_dustin
 sudo<span class="w"> </span>ip<span class="w"> </span>address<span class="w"> </span>delete<span class="w"> </span><span class="m">10</span>.0.0.20/24<span class="w"> </span>dev<span class="w"> </span>veth_leah
+
+<span class="c1"># 删除 IP 后，本机 ping netns IP 正常，但是 netns 之间 ping 异常</span>
+<span class="c1"># 正常</span>
+ping<span class="w"> </span><span class="m">10</span>.0.0.11<span class="w"> </span>-c<span class="w"> </span><span class="m">1</span>
+ping<span class="w"> </span><span class="m">10</span>.0.0.21<span class="w"> </span>-c<span class="w"> </span><span class="m">1</span>
+<span class="c1"># 异常</span>
+sudo<span class="w"> </span>ip<span class="w"> </span>netns<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>netns_dustin<span class="w"> </span>ping<span class="w"> </span><span class="m">10</span>.0.0.21<span class="w"> </span>-c<span class="w"> </span><span class="m">1</span>
+sudo<span class="w"> </span>ip<span class="w"> </span>netns<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>netns_leah<span class="w"> </span>ping<span class="w"> </span><span class="m">10</span>.0.0.11<span class="w"> </span>-c<span class="w"> </span><span class="m">1</span>
+<span class="c1"># netns 之间 ping 异常是因为目前 bridge_home 不能转发流量</span>
+<span class="c1"># 目前 bridge_home 只能接受来自 veth_dustin 和 veth_leah 的流量</span>
+<span class="c1"># 但是需要转发到 veth_leah 和 veth_dustin 的数据包都被 bridge_home  丢弃了</span>
+<span class="c1"># 增加下述防火墙配置</span>
+sudo<span class="w"> </span>iptables<span class="w"> </span>--append<span class="w"> </span>FORWARD<span class="w"> </span>--in-interface<span class="w"> </span>bridge_home<span class="w"> </span>--out-interface<span class="w"> </span>bridge_home<span class="w"> </span>--jump<span class="w"> </span>ACCEPT
 </pre></div>
-<p>netns 之间验证 ping 和 curl ， ping 正常，curl 异常</p>
+<p>增加上述防火墙配置后，netns 之间验证 ping 和 curl ， ping 正常，curl 异常</p>
 <div class="highlight"><pre><span></span>sudo<span class="w"> </span>ip<span class="w"> </span>netns<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>netns_dustin<span class="w"> </span>ping<span class="w"> </span><span class="m">10</span>.0.0.21<span class="w"> </span>-c<span class="w"> </span><span class="m">1</span>
 sudo<span class="w"> </span>ip<span class="w"> </span>netns<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>netns_leah<span class="w"> </span>ping<span class="w"> </span><span class="m">10</span>.0.0.11<span class="w"> </span>-c<span class="w"> </span><span class="m">1</span>
 <span class="c1"># 异常 curl: (7) Failed connect to 10.0.0.11: 8080; No route to host</span>
