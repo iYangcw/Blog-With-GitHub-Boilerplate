@@ -2,7 +2,7 @@
 layout: post
 title: 通过 netns 以及 veth bridge 类型创建 IP
 slug: 通过 netns 以及 veth bridge 类型创建 IP
-date: 2023-08-16 16:00
+date: 2023-08-17 09:00
 status: publish
 author: Sai
 categories: 
@@ -450,9 +450,22 @@ ip route list
 # 删除 IP
 sudo ip address delete 10.0.0.10/24 dev veth_dustin
 sudo ip address delete 10.0.0.20/24 dev veth_leah
+
+# 删除 IP 后，本机 ping netns IP 正常，但是 netns 之间 ping 异常
+# 正常
+ping 10.0.0.11 -c 1
+ping 10.0.0.21 -c 1
+# 异常
+sudo ip netns exec netns_dustin ping 10.0.0.21 -c 1
+sudo ip netns exec netns_leah ping 10.0.0.11 -c 1
+# netns 之间 ping 异常是因为目前 bridge_home 不能转发流量
+# 目前 bridge_home 只能接受来自 veth_dustin 和 veth_leah 的流量
+# 但是需要转发到 veth_leah 和 veth_dustin 的数据包都被 bridge_home  丢弃了
+# 增加下述防火墙配置
+sudo iptables --append FORWARD --in-interface bridge_home --out-interface bridge_home --jump ACCEPT
 ```
 
-netns 之间验证 ping 和 curl ， ping 正常，curl 异常
+增加上述防火墙配置后，netns 之间验证 ping 和 curl ， ping 正常，curl 异常
 
 ```bash
 sudo ip netns exec netns_dustin ping 10.0.0.21 -c 1
